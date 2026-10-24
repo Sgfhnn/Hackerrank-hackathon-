@@ -55,6 +55,6 @@ Use `code/multimodal.py`:
 `resource_id` is always the system resource ID the output cites (taken from the
 file's `LINK_RESOURCE_IDENTITY` activity). Where the artifact itself shows a
 different label, that label is kept as `display_id`:
-evidence_18 `NST-2026-0718-1842` -> `export_1842` (activity_4009),
+evidence_18 `NST-2026-0718-1842` -> `export_service/export_1842` (activity_4009; artifact system kept as display_system_id),
 evidence_46 bucket prefix -> `object_19` (activity_4007, delivery_confirmation_19.pdf),
 evidence_42 `user_17` -> `tombstone_17` (activity_4011).
