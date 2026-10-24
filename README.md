@@ -155,3 +155,78 @@ Before submitting, confirm that:
 - `code.zip` includes your runnable code, `README.md`, `code/evaluation/evaluation_report.md`, and `code/evaluation/usage_report.md`;
 - `log.txt` follows the `AGENTS.md` turn format and is uploaded to the `chat_transcript` slot; and
 - no API keys, credentials, real personal data, or sensitive configuration values are included.
+
+---
+
+## How to run (`python3 code/main.py`)
+
+Requirements:
+
+- **Python 3.9+, standard library only.** Every module imported under `code/` (`csv`, `json`, `os`, `re`, `sys`, `sqlite3`, `hashlib`, `pathlib`, `dataclasses`, `datetime`, `argparse`, `tempfile`, `unittest`, plus local modules) is part of the Python 3 standard library or ships inside this repository. No `pip install` or virtual environment is needed.
+- The `dataset/` directory must sit **next to `code/` at the repository root** (i.e. `dataset/` and `code/` are siblings). The dataset is **not** shipped inside `code.zip`; place the challenge-provided `dataset/` beside the extracted `code/` before running.
+
+Run from the repository root:
+
+```bash
+python3 code/main.py
+```
+
+This processes all 518 requests in `dataset/deletion_requests.csv` and writes `output.csv` at the repository root with exactly 518 data rows (plus the header `case_id,deletion_status,steps_json`), sorted by `case_id`. Typical runtime is a few seconds on a laptop CPU. No network access, API keys, or model calls are required: the pipeline is deterministic.
+
+Optional checks:
+
+- Run the built-in contract self-tests:
+
+  ```bash
+  python3 code/main.py --selftest
+  ```
+
+- Validate an existing output file (exit non-zero on problems):
+
+  ```bash
+  python3 code/main.py --check output.csv
+  ```
+
+- Re-run the full agent under shuffled, renamed, and re-cased requests to prove the answers do not depend on `case_id` or row order (requires `dataset/`):
+
+  ```bash
+  python3 code/evaluation/perturbation_check.py
+  ```
+
+Evaluation and reports:
+
+- `code/evaluation/evaluation_report.md` — case-level, step-level, field-level, and sequence accuracy, custom evaluation cases, failures found, and improvements made.
+- `code/evaluation/usage_report.md` — model providers/names, model-call counts, token usage, and cost breakdown for the final full-dataset run.
+- Score a prediction file against the public sample gold (requires a run matched to `dataset/sample_deletion_requests.csv`):
+
+  ```bash
+  python3 code/evaluation/main.py score --pred <predictions.csv> --gold dataset/sample_output.csv
+  ```
+
+  `python3 code/evaluation/main.py score` (default command) scores the default prediction file against `dataset/sample_output.csv`; the 518-case `output.csv` has no public gold, so score sample-sized outputs for a meaningful comparison.
+- Validate the full submission format without gold answers:
+
+  ```bash
+  python3 code/evaluation/main.py check --pred output.csv
+  ```
+
+### Package and verify `code.zip`
+
+`code.zip` contains `README.md` and the `code/` directory, including `code/evaluation/evaluation_report.md` and `code/evaluation/usage_report.md`. The builder excludes `dataset/`, git metadata, virtual environments, `__pycache__`/`*.pyc`, `output.csv`, `log.txt`, nested archives, and credential files. Entries are sorted with fixed timestamps, so the archive is reproducible.
+
+```bash
+python3 code/package_zip.py
+python3 code/package_zip.py --check
+```
+
+`--check` re-opens an existing archive and exits non-zero if a forbidden path or extension is present, if `README.md` or either evaluation report is missing, or if a text entry contains something that looks like a secret.
+
+### Code layout
+
+- `code/main.py` — core contract, dataset loaders, identity resolution, and output rendering.
+- `code/evidence.py` — adapter that runs the Hark evidence/state engine.
+- `code/hark/` — evidence ingestion, identity windows, and the state engine.
+- `code/intent.py` — rules-first deletion-intent classifier.
+- `code/multimodal.py` + `code/extracted/` — facts extracted from PDFs and screenshots.
+- `code/evaluation/` — scorer, validators, custom cases, perturbation check, and the required reports.
+- `code/package_zip.py` — deterministic `code.zip` builder and verifier.

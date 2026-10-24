@@ -150,3 +150,22 @@ All agents append. Newest last.
 - An answer must not depend on case_id or row position. `code/evaluation/perturbation_check.py` enforces this. The engine's tie-breaks use content order (requested_at, reported_at, audit_at, email, text) instead of the number inside case_id.
 - Two requests that resolve to the same person with the same reported_at share one activity assignment instead of competing for it (engine-level fix for Cue F6).
 - Accepted cost: 43 rows of the real output change steps, all no-signal guesses (statuses unchanged). Neither ordering predicts better than chance on signal-resolved pairs, so the id-free one wins.
+
+## 2026-10-24 18:00 EAT — @opencode, packaging the submission
+
+1. **Deterministic archive.** `code/package_zip.py` writes sorted entries with
+   fixed 1980-01-01 timestamps, forward-slash paths, and `ZIP_DEFLATED`, so the
+   same worktree produces the same archive bytes and the SHA-256 summary is a
+   stable artifact check.
+2. **Deny-list, not an allow-list of exceptions.** Contents are `README.md` plus
+   `code/`, but the builder and verifier reject `dataset/`, `.git`, virtual
+   environments, `node_modules`, `__pycache__`/`*.pyc`, `.DS_Store`,
+   `output.csv`, `log.txt`, `AGENTS.md`, nested archives, and credential-like
+   file names. A missing required report fails verification instead of silently
+   shipping an incomplete archive.
+3. **Verify by re-opening.** The build path does not trust its own file list: it
+   re-opens the finished zip and re-checks paths, required entries, and a
+   secret-pattern scan of text entries. `--check` runs the same verifier on an
+   existing archive without rebuilding, so a stale or hand-edited zip is caught.
+4. **`code.zip` is gitignored.** The archive is a submission artifact, not source;
+   only the builder and the run instructions are committed.

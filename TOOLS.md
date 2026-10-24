@@ -32,3 +32,4 @@ All agents append. One line per action.
 - 2026-10-24 16:43 EAT | Cue (Cue) | python3 code/evaluation/main.py score / check / custom --agent / usage | Scored samples (status 32/32, exact 30/32), checked output.csv (OK), custom cases (status 8/8, exact 5/8), usage (0 model calls).
 - 2026-10-24 16:46 EAT | Cue (Cue) | python3 code/evaluation/batch_check.py (new) | Showed custom_04 / custom_07 depend on the batch (pass without their base sample); custom_06 is the known F1.
 - 2026-10-24 16:47 EAT | Cue (Cue) | file edit | Updated evaluation_report.md (section 8 and pointers), usage_report.md, evaluation README.md.
+- 2026-10-24 18:00 EAT | OpenCode (opencode) | write / bash (python3) | Added `code/package_zip.py` (stdlib deterministic builder + re-open verifier with deny-list and secret scan); added `code.zip` to `.gitignore`; extended the README run section with optional checks, packaging commands, and the `code/` layout map; rebuilt and verified `code.zip`.

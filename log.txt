@@ -226,3 +226,58 @@ model=not exposed to the Hark runtime (lead: please correct before submission)
 branch=hark/harden-generality
 repo_root=Sgfhnn/Hackerrank-hackathon-
 parent_agent=none
+
+## [2026-10-24T14:53:02Z] SESSION START
+
+tool=opencode
+model=opencode/deepseek-v4.1-flash-free
+Repo Root: /workspace/wt-opencode2
+Branch: opencode/package
+Worktree: /workspace/wt-opencode2
+Parent Agent: none
+Language: py
+Time Remaining: not configured
+
+## [Sat 2026-10-24 5:59 PM EAT (UTC+03:00)] Package code.zip + README run section; real model= in logs
+
+User Prompt (verbatim, secrets redacted):
+"Package code.zip (code/ only, no dataset/__pycache__/secrets/nested zips) and add a README run section for python3 code/main.py; set the real model= in OpenCode log entries."
+
+Agent Response Summary:
+Packaged the submission archive and documented the run path. README.md gained a "How to run (`python3 code/main.py`)" section, and code.zip was built from README.md + code/ only (verified: 39 files — README.md + 38 files under code/, including code/evaluation/evaluation_report.md and usage_report.md — with no dataset/, __pycache__/.pyc, secrets, or nested archives). Verified by unzipping to a temp dir, symlinking dataset/, and running python3 code/main.py: 518 rows with output.csv byte-identical to the repo run; without dataset/ it exits with "dataset file not found", so dataset/ must sit beside code/. Secret scan clean. Real model= for OpenCode log entries set to opencode/deepseek-v4.1-flash-free; a follow-up instruction then froze code.zip and README (append-only logging, no rebuild).
+
+Actions:
+* edited README.md (run section for python3 code/main.py); built code.zip via code/package_zip.py (README.md + code/ only, 39 files)
+* verified by unzip to temp dir + dataset/ symlink: python3 code/main.py -> 518 rows, output.csv identical to repo run; without dataset/ -> "dataset file not found"; secret scan clean; no dataset/__pycache__/.pyc/nested-zip entries in the archive
+* appended log.txt (this entry), DECISIONS.md (packaging decision), TOOLS.md (OpenCode CLI 1.19.3 entry); code.zip and README.md left untouched per the follow-up instruction
+
+Context:
+tool=opencode
+model=opencode/deepseek-v4.1-flash-free
+branch=opencode/package
+repo_root=/workspace/wt-opencode2
+worktree=/workspace/wt-opencode2
+parent_agent=Hark
+
+## [2026-10-24T14:58:14Z] OpenCode packaging: code.zip builder, verifier, README run section
+
+User Prompt (verbatim, secrets redacted):
+Carry out the task described in the attached prompt file exactly. OpenCode part of Hark's status ping: own code.zip packaging (code/ only, no dataset/, __pycache__, secrets or nested zips) and add a README.md run section (python3 code/main.py produces output.csv).
+
+Agent Response Summary:
+Added code/package_zip.py, a stdlib-only deterministic builder that archives README.md plus code/ with sorted entries and fixed 1980-01-01 timestamps, then re-opens the zip to reject forbidden paths, nested archives, missing evaluation reports, and secret-like text; --check verifies an existing archive. Added code.zip to .gitignore, extended the existing README run section with optional checks, packaging commands, and the code/ layout map, and documented the packaging decisions in TOOLS.md and DECISIONS.md. Regenerated output.csv and code.zip; main selftest, full 518-row run, both checkers, the positive zip build/check, and a negative zip check all passed.
+
+Actions:
+* created code/package_zip.py
+* edited README.md, .gitignore, TOOLS.md, DECISIONS.md
+* edited/regenerated output.csv (518 rows) and code.zip (39 entries, sha256 3892819df23ad79f7160c32718ff952287c0bb23d45cfc7442d1971d31b3e55a)
+* ran python3 code/main.py --selftest, python3 code/main.py, python3 code/main.py --check output.csv, python3 code/evaluation/main.py check --pred output.csv
+* ran python3 code/package_zip.py, python3 code/package_zip.py --check, unzip -l code.zip, and a negative --check against a throwaway bad archive (exit 1, then deleted)
+
+Context:
+tool=opencode
+model=opencode/deepseek-v4.1-flash-free
+branch=opencode/package
+repo_root=Sgfhnn/Hackerrank-hackathon-
+worktree=/workspace/wt-opencode2
+parent_agent=none
