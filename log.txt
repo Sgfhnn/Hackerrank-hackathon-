@@ -570,3 +570,31 @@ branch=muse/log-final-round
 repo_root=Sgfhnn/Hackerrank-hackathon-
 worktree=main
 parent_agent=none
+
+## [2026-10-24T22:05:00+03:00] Hark — closing note: resolves open model= placeholders, stub entries, time and order conventions
+
+User Prompt (verbatim, secrets redacted):
+well okay
+
+Agent Response Summary:
+Anu approved one closing, append-only entry that resolves the rough spots in this log without editing any earlier entry (AGENTS.md §5 is append-only).
+1. Placeholder model lines are resolved. The 4 Hark lines saying "lead: please correct before submission" (the entries at 16:20, 16:20 and 16:45 from the Hark subagent, and 18:05 generality hardening) and the 4 Cue sub-agent lines saying "coordinator please fill in before submission" (16:07, 16:22, 16:42 and 16:50) are final as written. The lead (Anu) confirmed that Hark's and Cue's runtimes do not expose which underlying model ran, so no identifier exists to fill in and none is guessed (see the 18:53 note). No action is pending on them.
+2. Missing context for three short Hark entries, all tool=Hark, model not exposed by the Hark runtime, repo Sgfhnn/Hackerrank-hackathon-, parent_agent=none:
+   * 16:45 canonical resource IDs: branch hark/canonical-resource-ids, PR #5, merged.
+   * 16:58 adapter batch fix (Cue F6): branch hark/adapter-batch-fix, PR #8, merged (commit eed4fb5).
+   * 17:04 multimodal facts + retention wiring: branch hark/retention-wiring, PR #9, merged (commit d8abe27), then superseded and hardened by PR #10.
+3. Timestamps: every header in this file is local East Africa Time (EAT, UTC+03:00). Older headers use a human-readable form; this entry uses strict ISO-8601.
+4. Order: entries appear in PR merge order, not strict time order, because each agent appended on its own branch and the branches were merged sequentially with both sides kept.
+Final state: PRs #1 through #16 are merged. code.zip (sha256 10cae6ba1c52c007a995a5b87738667d142b679ac002d58f1189e901a90e464f) and output.csv are unchanged by the log-only PRs #14 to #17.
+
+Actions:
+* appended this entry to log.txt; no earlier entry edited
+* branch hark/log-closing-note from origin/main 0c378cc; PR into main
+
+Context:
+tool=Hark
+model=not exposed by the Hark runtime (multi-model router; no authoritative identifier available, none guessed)
+branch=hark/log-closing-note
+repo_root=Sgfhnn/Hackerrank-hackathon-
+worktree=main
+parent_agent=none
