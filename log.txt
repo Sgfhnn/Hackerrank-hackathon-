@@ -169,3 +169,9 @@ branch=cue/evaluation
 repo_root=/workspace/wt-cue
 worktree=/workspace/wt-cue
 parent_agent=Cue coordinator
+
+## [2026-10-24 16:45 EAT] Hark — canonical resource IDs in extracted multimodal facts
+
+User Prompt: "didn't miss rename" (Anu: do the pending resource_id renames from the PR #2 review)
+Agent Response Summary: Set canonical resource_id in code/extracted/*.json for evidence_18 (export_1842), evidence_46 (object_19), evidence_42 (tombstone_17), verified against LINK_RESOURCE_IDENTITY activities 4009/4007/4011; old labels kept as display_id; README note added. Pipeline output unchanged.
+Actions: edited code/extracted/documents.json, images.json, README.md; branch hark/canonical-resource-ids; PR into main.
