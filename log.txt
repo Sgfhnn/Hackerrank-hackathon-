@@ -1,3 +1,46 @@
+## [2026-10-24T13:13:01Z] SESSION START
+
+tool=opencode
+model=opencode/deepseek-v4.1-flash-free
+Repo Root: /workspace/wt-opencode
+Branch: opencode/core
+Worktree: /workspace/wt-opencode
+Parent Agent: none
+Language: py
+Time Remaining: not configured
+
+## [2026-10-24T13:19:27Z] SESSION START
+
+tool=opencode
+model=opencode/deepseek-v4.1-flash-free
+Repo Root: /workspace/wt-opencode
+Branch: opencode/core
+Worktree: /workspace/wt-opencode
+Parent Agent: none
+Language: py
+Time Remaining: not configured
+
+## [2026-10-24T13:19:27Z] TASK 2 CORE FOLLOW-UP
+
+User Prompt (verbatim, secrets redacted):
+Task 2 core of code/main.py (CSV loaders, ISO-UTC timestamps, identity resolution, output writer, plug-in hooks) for the Ghost Data Still Exists deletion-audit agent; full spec in /workspace/opencode_core_prompt.md
+
+Agent Response Summary:
+Recorded the coordinator's review and manual `solve_case` edit in TOOLS.md and DECISIONS.md, then appended this per-turn log entry. The documented behavior keeps numbered plug-in steps on validation problems while still listing them in the run summary, preserving partial credit; stub auditors skip validation.
+
+Actions:
+* edit: appended two rows to TOOLS.md
+* edit: appended a Partial-credit fallback bullet to DECISIONS.md
+* edit: appended SESSION START and per-turn entries to log.txt
+
+Context:
+tool=opencode
+model=opencode/deepseek-v4.1-flash-free
+branch=opencode/core
+repo_root=/workspace/wt-opencode
+worktree=/workspace/wt-opencode
+parent_agent=none
+
 ## [2026-10-24T16:07:54+03:00] SESSION START
 
 tool=Muse
