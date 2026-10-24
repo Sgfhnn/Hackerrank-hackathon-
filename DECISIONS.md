@@ -137,3 +137,10 @@ All agents append. Newest last.
 - F1 stays open: `case_18` / `case_20` lack one `security_service` audit-record verification (ids appear in no participant file); 111 of 356 INCOMPLETE rows in the real output have no audit-record step.
 - Decision: the usage report states 0 model calls for main, based on reading the imports (no network or LLM client; the intent LLM fallback is never wired in). If anyone adds a model call it must use `evaluation/usage.py::record_usage` and the report must be regenerated.
 - Decision: `output.csv` is not committed in the evaluation PR; submission artifact ownership stays with OpenCode.
+
+## 2026-10-24 17:04 EAT — @hark, multimodal facts + retention wiring
+- Source of truth for PNG/PDF states is now `code/extracted/*.json` (via `code/multimodal.py` -> `code/hark/multimodal_facts.py`). `multimodal_hints.py` stays only as a fallback for a resource the extraction lacks; today the extraction covers all 13, and the output is identical with the hints emptied.
+- When several artifacts show one resource (audit_record_003: evidence_55 PDF 06:30 UTC, evidence_37 PNG 07:00 UTC on 2026-09-05), cite the latest one whose captured_at <= audit_at (same "latest citable file" rule as other evidence).
+- A citable retention entry naming a case resource forces RETAIN (VERIFY_RECORD_PRESENT) while retain-until >= audit_at; once it has passed, the record follows rule_12's lapse path (delete). Entries from files captured after audit_at are ignored.
+- The legal retention register (evidence_27, users 08/12/17/21/24/29, finance orders retained to May 2033) produces no output step: its rows name order ids that appear in no other file and no system resource id a case resource maps to, and the six gold samples for those users contain no step for it. Recorded in plan debug only. Revisit if the grader's contract turns out to want a `legal_retention_service` VERIFY_RECORD_PRESENT step.
+- Owner-by-email linking for PDF documents applies only to resources with no LINK_RESOURCE_IDENTITY activity (today only support_001 / evidence_58), so a PDF never adds its resource to cases outside the LINK window.

@@ -15,7 +15,9 @@ python3 code/hark/explain_samples.py        # -> sample_explanations.md (per-ste
 | `identity.py` | request email -> user_id via `user_identities.csv` + `user_audit_log.csv`; all current + historical emails/phones/names/hashes |
 | `windows.py` | deletion-worker activity windows relative to `reported_at` and the second-level fingerprint that ties follow-up activities to a case's account activity |
 | `engine.py` | `Engine.prepare()` global activity->case assignment, `state_at()`, `active_data_flows()`, `restore_risks()`, `plan()` -> (status, ordered steps) |
-| `multimodal_hints.py` | PROVISIONAL states for the 13 PNG/PDF-backed resources (replace with the OCR module) |
+| `multimodal_facts.py` | adapter: Muse's extracted PNG/PDF facts (`code/multimodal.py`) -> per-resource state, treatment, document owners and retention entries |
+| `multimodal_hints.py` | hand-read fallback, used only for a resource the extraction lacks (none today) |
+| `test_multimodal_facts.py` | `python3 -m unittest discover -s code/hark -p "test_*.py"` |
 | `score.py` | status acc, exact case, sequence acc, step P/R/F1, evidence acc |
 | `FINDINGS.md` | reverse-engineered rules from the 32 samples |
 

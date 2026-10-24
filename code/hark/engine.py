@@ -13,7 +13,7 @@ from datetime import timedelta
 from ingest import load_all, load_activity, DATASET, parse_ts, system_for, prefix_of, norm_email
 from identity import Identity, obs_matches
 from windows import window_of, offset_ok, residue_ok
-from multimodal_hints import HINTS, DOC_OWNERS
+from multimodal_facts import build as build_multimodal  # Muse's extracted facts; hints only as fallback
 
 OP_ORDER = ["REPORT_REMAINING_RECORD", "REPORT_EXPOSED_PII", "REPORT_ACTIVE_DATA_FLOW", "REPORT_RESTORE_RISK",
             "DISABLE_DATA_FLOW", "BLOCK_RESTORE", "DELETE_RECORD", "REDACT_RECORD", "ANONYMIZE_RECORD",
@@ -61,6 +61,9 @@ class Engine:
             if m:
                 self.act_by_rid[m.group(1)].append(a)
         self.links = [a for a in self.acts if a["event_type"] == "LINK_RESOURCE_IDENTITY"]
+        # multimodal (PNG/PDF) facts from code/multimodal.py; multimodal_hints.py only fills gaps
+        self.mm_facts, self.mm_owners, self.retention, self.mm_source = build_multimodal(
+            {a["resource_id"] for a in self.links})
         # account-coverage snapshot files (used to prove absence when no direct lookup exists)
         self.account_snapshots = []
         for o in self.obs:
@@ -79,6 +82,17 @@ class Engine:
     def file_ok(self, fid, audit_at):
         f = self.files.get(fid)
         return f is not None and f["captured_at"] <= audit_at
+
+    def mm_fact(self, rid, audit_at):
+        """Latest extracted artifact fact for rid whose file is citable at audit_at (captured_at <= audit_at)."""
+        ok = [f for f in self.mm_facts.get(rid, []) if self.file_ok(f[0], audit_at)]
+        return max(ok, key=lambda f: self.files[f[0]]["captured_at"]) if ok else None
+
+    def retention_for(self, audit_at, rid=None, user_id=None):
+        """Citable retention entries (security audit log extract, legal retention register) for a resource or
+        a subject. Only entries whose evidence file was captured <= audit_at count."""
+        return [r for r in self.retention if self.file_ok(r["evidence_id"], audit_at)
+                and (rid is None or r["resource_id"] == rid) and (user_id is None or r["user_id"] == user_id)]
 
     def user_obs(self, user_id, audit_at):
         """Observations (in files captured <= audit_at) that mention one of the subject's identifiers."""
@@ -292,9 +306,8 @@ class Engine:
         for a in self.links:
             if req_at <= a["ts"] <= audit_at and re.search(r"\b%s\b" % re.escape(user_id), a["details"]):
                 res.setdefault(a["resource_id"], {"via": set()})["via"].add("link")
-        for rid, em in DOC_OWNERS.items():
-            fid = HINTS[rid][0]
-            if norm_email(em) in ids["emails"] and self.file_ok(fid, audit_at) and \
+        for rid, (fid, emails) in self.mm_owners.items():
+            if any(norm_email(em) in ids["emails"] for em in emails) and self.file_ok(fid, audit_at) and \
                     self.files[fid]["captured_at"] >= req_at:
                 res.setdefault(rid, {"via": set()})["via"].add("document")
         # one account per subject: prefer evidence/owner-linked accounts
@@ -460,10 +473,21 @@ class Engine:
             if st["obs"]:
                 sysid = st["obs"][0].system_id or sysid
             ev = st["evidence_id"]
-            if rid in HINTS and self.file_ok(HINTS[rid][0], audit_at):
-                fid, sysid, tr, flags = HINTS[rid]
+            mm = self.mm_fact(rid, audit_at)
+            if mm:
+                fid, sysid, tr, flags = mm
                 st.update(flags)
                 ev = fid
+            # supplied retention (rule_12 / rule_13): a citable retention entry naming this record keeps it
+            # (VERIFY_RECORD_PRESENT) instead of deleting it, until its retain-until date has passed.
+            ret = self.retention_for(audit_at, rid=rid)
+            if ret:
+                until = max(r["retain_until"] for r in ret if r["retain_until"]) if any(
+                    r["retain_until"] for r in ret) else None
+                if until and not st.get("retention_until"):
+                    st["retention_until"] = until
+                if until and until >= audit_at:
+                    tr = "RETAIN"
             # fallback state from activity claims when no evidence
             if st["present"] is None:
                 # no evidence snapshot: activity results are only claims and cannot support a finding,
@@ -479,7 +503,7 @@ class Engine:
                     st["restore_allowed"] = False
                 elif tr == "RETAIN":
                     st["present"] = True
-            debug[rid] = dict(tr=tr, present=st["present"], pii=st["pii"], enabled=st["enabled"],
+            debug[rid] = dict(src=self.mm_source.get(rid, "evidence") if mm else "evidence", tr=tr, present=st["present"], pii=st["pii"], enabled=st["enabled"],
                               restore=st["restore_allowed"], ev=ev, via=sorted(res[rid]["via"]))
             if tr == "DELETE":
                 if st["present"]:
@@ -518,6 +542,12 @@ class Engine:
                               ("VERIFY_RESTORE_BLOCKED", sysid, rid, "")]
                 elif st["restore_allowed"] is False:
                     steps.append(("VERIFY_RESTORE_BLOCKED", sysid, rid, ev))
+        # legal retention register rows for this subject (evidence_27): retained finance records. They carry no
+        # system resource id that any case resource maps to, so they add no step; they are recorded so a
+        # deletion is never proposed for them (no gold sample of users 08/12/17/21/24/29 has a step for them).
+        reg = [r for r in self.retention_for(audit_at, user_id=uid) if r["order_id"]]
+        if reg:
+            debug["_retention_register"] = [(r["evidence_id"], r["order_id"], str(r["retain_until"])) for r in reg]
         incomplete = any(PHASE[s[0]] == "FINDING" for s in steps)
         status = "INCOMPLETE" if incomplete else "COMPLETE"
         if incomplete:
