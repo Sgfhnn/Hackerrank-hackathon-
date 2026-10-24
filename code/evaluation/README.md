@@ -8,6 +8,7 @@ Standard library only (Python 3.8+), deterministic, no network. Task 5 of the te
 | `scorer.py` | metrics (case / row / step / field / sequence), row and file validators |
 | `custom_cases.py` | 8 metamorphic evaluation cases; builds `custom/custom_requests.csv` + `custom/custom_gold.csv` |
 | `usage.py` | `record_usage(...)` for every model call; builds `usage_report.md` |
+| `batch_check.py` | diagnostic: plans custom_04/06/07 in 3 batch compositions to show the engine's dependence on which requests are planned together |
 | `analyze_samples.py` | prints the pattern statistics behind `sample_patterns.md` |
 | `test_scorer.py` | 28 unit tests |
 | `evaluation_report.md` | required report (metrics, custom cases, failures, improvements) |

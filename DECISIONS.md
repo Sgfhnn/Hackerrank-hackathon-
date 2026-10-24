@@ -130,3 +130,10 @@ All agents append. Newest last.
 5. **export_1260 expiry is recorded, not interpreted.** The export was
    Ready at capture (2026-06-18) with an expiry of 2026-06-25; whether a
    later audit still counts it is a state-engine call using audit_at.
+
+## 2026-10-24 16:50 EAT — @cue, task 5 follow-up (evaluation of main 45c5428)
+- Section 8 of `code/evaluation/evaluation_report.md` is now measured on main, not on the prototype: samples status 32/32, exact rows 30/32 (same as the prototype), `check` on the 518-row `output.csv` OK, custom cases status 8/8 but exact 5/8 (prototype: 7/8).
+- Finding F6 (owner: Hark, `code/hark/engine.py::prepare` / `code/evidence.py`): the engine prepares on samples + real 518 + the run's requests and assigns account activity one-to-one by `reported_at` window. A request that duplicates a sample's `reported_at` and user (custom_04 / custom_07 vs case_29 / case_28) gets no account activity and falls back to `account_0NN`; they pass when the base sample is left out of the batch (`python3 code/evaluation/batch_check.py`). Not triggered by the real run. Suggested fix: do not let a request in one batch consume activity that another request would also match, or make the real-vs-sample assignment independent. Not edited by Cue.
+- F1 stays open: `case_18` / `case_20` lack one `security_service` audit-record verification (ids appear in no participant file); 111 of 356 INCOMPLETE rows in the real output have no audit-record step.
+- Decision: the usage report states 0 model calls for main, based on reading the imports (no network or LLM client; the intent LLM fallback is never wired in). If anyone adds a model call it must use `evaluation/usage.py::record_usage` and the report must be regenerated.
+- Decision: `output.csv` is not committed in the evaluation PR; submission artifact ownership stays with OpenCode.
