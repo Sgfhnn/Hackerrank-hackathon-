@@ -7,8 +7,9 @@ Core contract:  audit_case(ctx, request, subject) -> (status, steps)
 
 The Hark engine (code/hark/engine.py) is built once per Context and cached in
 ctx.extras["hark_engine"]. Its activity->case assignment is global, so it is
-prepared on every request the dataset contains (sample + test files) plus any
-request in ctx.requests, matching `python3 code/hark/run.py`.
+prepared on the current run's requests plus every other request the dataset contains
+(sample + test files); a dataset request with the same email and reported_at as a run request is
+skipped so it cannot steal that request's activity.
 Stdlib only, no model calls. Works from repo root (`python3 code/main.py`) or any cwd.
 """
 import csv
@@ -57,16 +58,26 @@ def _all_cases(ctx, dataset_dir):
             seen.add(cid)
             cases.append(row)
 
+    # The current run's requests go first and win. A dataset request that describes the same
+    # event (same email and reported_at) as one of them is left out, so it cannot claim the
+    # shared account activity away from the request actually being audited (Cue finding F6).
+    run = [_case_dict(req) for req in getattr(ctx, "requests", None) or []]
+    for row in run:
+        add(row)
+    taken = {_event_key(r) for r in run}
     if dataset_dir:
         for name in _REQUEST_FILES:
             path = os.path.join(dataset_dir, name)
             if os.path.exists(path):
                 with open(path, newline="", encoding="utf-8") as f:
                     for row in csv.DictReader(f):
-                        add(row)
-    for req in getattr(ctx, "requests", None) or []:
-        add(_case_dict(req))
+                        if _event_key(row) not in taken:
+                            add(row)
     return cases
+
+
+def _event_key(row):
+    return ((row.get("email") or "").strip().lower(), (row.get("reported_at") or "").strip())
 
 
 def get_engine(ctx):
