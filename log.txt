@@ -321,6 +321,26 @@ branch=muse/extraction-script
 repo_root=Sgfhnn/Hackerrank-hackathon-
 parent_agent=none
 
+## [2026-10-24T18:53:00+03:00] Hark — note on model= values for Hark and Cue entries
+
+User Prompt (verbatim, secrets redacted):
+okay go
+
+Agent Response Summary:
+Anu confirmed earlier in this turn ("for you and for cue it's unknown") that the exact model identifiers for the Hark and Cue entries are not known, and approved this note. Hark and Cue are agent platforms that route each turn across several underlying models and do not expose which one ran, so no authoritative model id exists for those entries. Rather than write model=unknown (invalid under AGENTS.md) or rewrite earlier entries (the log is append-only), this entry records the gap openly. Entries from OpenCode (opencode/deepseek-v4.1-flash-free) and Muse (Muse Spark) carry their runtime model ids.
+
+Actions:
+* appended this note to log.txt; no earlier entry edited
+* branch hark/log-model-note from origin/main; PR into main
+
+Context:
+tool=Hark
+model=not exposed by the Hark runtime (multi-model router; no authoritative identifier available, none guessed)
+branch=hark/log-model-note
+repo_root=Sgfhnn/Hackerrank-hackathon-
+worktree=main
+parent_agent=none
+
 ## [2026-10-24T16:07:49+03:00] Cue: claim evaluation task, relay core task to OpenCode
 
 User Prompt (verbatim, secrets redacted):
