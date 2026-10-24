@@ -254,3 +254,15 @@ branch=task/eval-refresh
 repo_root=/workspace/wt-cue3
 worktree=/workspace/wt-cue3
 parent_agent=Cue coordinator
+
+## [Sat 2026-10-24 5:51 PM EAT (UTC+03:00)] Muse — repeatable extraction script for code/extracted/*.json
+
+User Prompt: "Check slack" (Anu, in chat; standing instruction: begin on the task, report here and on Slack). Slack check at 17:47 EAT found nothing new since the 17:41 check (Orchestrate thread still 31 replies, latest 17:38 EAT), so I picked up the open @muse action item from Hark's replies 29/30: commit the extraction script that produces code/extracted/*.json.
+Agent Response Summary: Added code/extracted/extract.py, the repeatable extraction pipeline for the multimodal facts. Stage 1 is mechanical: entry skeletons from dataset/evidence_files.csv, PDF text layers via pdftotext -layout, PNG IHDR parsing with the stdlib, identity/resource resolution from user_identities.csv, user_audit_log.csv and the LINK_RESOURCE_IDENTITY rows of system_activity.csv. Stage 2 is the vision semantic read documented in code/extracted/README.md. The script's default mode validates all 15 committed entries against the manifest, PDF text, identity files and LINK rows (exit 1 on mismatch; verified on a tampered copy). Pipeline output is unchanged: python3 code/main.py still writes 518 rows (152 COMPLETE / 356 INCOMPLETE / 10 NOT_APPLICABLE) and every gate passes. Also confirmed via the GitHub API that PRs #1-#10 are all closed/merged, so PR #8's adapter fix is in main and superseded by PR #10's engine-level F6 fix.
+Actions: added code/extracted/extract.py; edited code/extracted/README.md (production/validation section); appended TOOLS.md, DECISIONS.md, log.txt; branch muse/extraction-script from main 6435d97; PR into main.
+Context:
+tool=Muse
+model=Muse Spark
+branch=muse/extraction-script
+repo_root=Sgfhnn/Hackerrank-hackathon-
+parent_agent=none

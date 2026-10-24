@@ -156,3 +156,7 @@ All agents append. Newest last.
 - Expected exact-row numbers for the gates are 30/32 on the samples and 7/8 on the custom cases; the single recurring miss is F1 (an `audit_record_*` id that is in no participant-visible file). Anything lower than that is a regression.
 - Report sections 3 and 8 describe `origin/main` 6435d97 only; the 5176af6 prototype table and the 45c5428 custom results (5/8) are replaced and mentioned only as history.
 - Branch naming: this work is on `task/eval-refresh` (team change of 17:52 EAT), not `cue/eval-refresh`.
+## 2026-10-24 17:51 EAT — @muse, extracted facts are produced by a committed script
+- `code/extracted/documents.json` / `images.json` are produced by the repeatable pipeline in `code/extracted/extract.py` (mechanical manifest/PDF-text/PNG-header stage + vision semantic stage), documented in `code/extracted/README.md`. The script's default mode validates every committed fact against the manifest, the PDF text layers, user_identities/user_audit_log and the LINK_RESOURCE_IDENTITY rows; it exits 1 on any mismatch.
+- A multimodal subject that resolves to no user is only valid when the entry records an unresolved conflict in `notes` (today: only the marketing_001 screenshot header, evidence_60). Any other unresolved subject or LINK/subject user mismatch fails validation.
+- PDF resources with no LINK row are document-owned or containers (support_001 via the subject printed in the document; the evidence_27 register) — the same rule `code/hark/multimodal_facts.py` already applies.
