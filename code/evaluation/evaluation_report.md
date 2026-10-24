@@ -382,3 +382,42 @@ agrees with activity time 184/385, request-time order 201/385. So the new order 
 the dependence on ids. Gates after the fix: selftest PASS, check 0 problems, samples status 32/32 and exact
 30/32, custom 7/8 (custom_06 = the known missing audit_record_6645), perturbation PASS.
 
+
+## 10. Case-to-activity matching: method, coverage and limits
+
+Most `system_activity.csv` rows written by the deletion worker (for example "Deletion worker submitted
+primary profile account_X", "Policy action completed for analytics_Y") carry **no name, email, phone or
+user_id**. To know which request an account or follow-up activity belongs to, the engine
+(`code/hark/engine.py::Engine.prepare`, `code/hark/windows.py`) uses this order, strongest first:
+
+1. **Evidence (owner).** A SQL row, JSON record, handover line or log line that names one of the subject's
+   identifiers (current or historical email, phone, email hash, user_id) links the resource directly.
+   This always wins.
+2. **Time-proximity fingerprint (fallback).** Only when no evidence links an account activity, it is matched
+   to the request whose `reported_at` window contains it, with a seconds-offset band between the account
+   DELETE and its follow-up activities used to separate requests that share a window.
+3. **Elimination.** Only one unclaimed candidate is left.
+4. **Deterministic guess.** No signal at all. The tie-break is content-ordered (section 9), so it does not
+   depend on case_id or row order.
+
+Coverage on the 518-row run (main, rerun 2026-10-24 22:25 EAT):
+
+| How the account activity was linked | Requests |
+| --- | ---: |
+| Evidence (owner) | 238 |
+| Time-proximity fingerprint (with evidence-owned follow-ups) | 179 |
+| Time-proximity fingerprint (un-owned follow-ups only) | 11 |
+| Elimination | 30 |
+| Guess with 1 free candidate | 18 |
+| Guess among 2 to 3 candidates | 20 |
+| No account activity to link (non-deletion and other cases) | 22 |
+
+**Limits, stated plainly:**
+* The time windows and the seconds-offset bands were **observed on the 32 solved samples**. They are not a
+  documented property of the system, so the hidden-set accuracy of the 190 fingerprint matches and the 38
+  guesses is likely lower than the 30/32 sample score suggests.
+* Ablation: removing only the seconds-offset check (keeping the windows) drops the samples from 30/32 to
+  20/32 exact (step F1 0.995 -> 0.953) and changes 166 of 518 rows. The check carries real signal, and no
+  evidence-based replacement exists in the data, so it is kept as a labelled fallback rather than removed.
+* For low-numbered users (user_01..30) with no linked account, the account id `account_0NN` is inferred
+  from the naming convention seen in all 10 such samples (`engine.py`, naming-convention fallback).
