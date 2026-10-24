@@ -1,0 +1,36 @@
+## [2026-10-24T16:07:53+03:00] SESSION START
+
+tool=Cue task sub-agent (Cue personal-assistant app, delegated by the Cue coordinator agent)
+model=not exposed by the runtime (no authoritative identifier available in this session; coordinator please fill in before submission)
+Repo Root: /workspace/wt-cue
+Branch: cue/evaluation
+Worktree: /workspace/wt-cue
+Parent Agent: Cue coordinator
+Language: py
+Time Remaining: not configured
+
+## [2026-10-24T16:22:00+03:00] Task 5: evaluation scorer, custom cases, reports, sample patterns
+
+User Prompt (verbatim, secrets redacted):
+Do this hackathon task for me: the HackerRank Orchestrate "Ghost Data Still Exists" deletion-audit agent, task 5 (evaluation). Build a scorer that compares an output.csv against sample_output.csv with case-level, row-level, field-level and sequence accuracy; write 3+ custom test cases; write evaluation_report.md and usage_report.md (with token/cost counts) under code/evaluation/ as the problem statement requires; and study the 32 solved samples and write up the patterns (which operations appear when, how status relates to evidence) as a short markdown note for the team. Output format is case_id,deletion_status,steps_json for each of the 518 rows in dataset/deletion_requests.csv; status is COMPLETE / INCOMPLETE / NOT_APPLICABLE (NOT_APPLICABLE gives []); steps are FINDING -> REMEDIATION -> VERIFICATION ordered by the operation table, then system_id, resource_id. Deliverables elsewhere in the repo include output.csv, code.zip (README + code/evaluation/evaluation_report.md + usage_report.md) and log.txt. Read problem_statement.md, README.md and AGENTS.md first and follow AGENTS.md, including appending your session summary to root log.txt (one shared log) in your PR.
+Repo: https://github.com/Sgfhnn/Hackerrank-hackathon- (private). It is already cloned at /workspace/Hackerrank-hackathon- ; do NOT work in that folder directly, make your own copy with `git worktree add /workspace/wt-cue -b cue/evaluation origin/main`. Git credentials are configured via the store helper in the opencode git-credentials file (git user is set in the clone; set user.name Cue and user.email task-a1fa35@bot.cue.im in your worktree if missing).
+Team rules: never push to main; work only on branch cue/evaluation; open a PR into main using git push plus the GitHub REST API (token file under the opencode config directory, never print it); keep the PR small and scoped; Anu reviews and merges. Others work at the same time: OpenCode owns code/main.py core, Hark owns code/evidence.py, Muse owns multimodal extraction and the intent classifier. Don't touch their files. Hark found all dataset timestamps are ISO UTC. Hark's early prototype scores on the 32 samples: status acc 0.97, step F1 0.91; use it only as a sanity reference. Add decisions to DECISIONS.md and tool actions to TOOLS.md (time in EAT, tool, what it did) if those files exist. The scorer should run on any output.csv so the team can use it as soon as the first end-to-end output exists (checkpoint 22:00 EAT). Report back with the PR link, the patterns note path, and the scorer usage command.
+
+Agent Response Summary:
+Built a standard-library scorer (case, row, step, field and sequence metrics plus per-row contract and evidence-time validation), a gold-free 518-row submission checker, a usage/cost recorder and report generator, 8 metamorphic custom cases derived from the 32 samples, 28 unit tests, evaluation_report.md, usage_report.md and a verified patterns note (code/evaluation/sample_patterns.md). Reference runs used Hark's prototype only as a sanity check: 32/32 status, 30/32 exact rows, 518-row structure valid. DECISIONS.md and TOOLS.md exist only on Muse's unmerged branch, so they were not created; the entries are listed in code/evaluation/README.md instead.
+
+Actions:
+* Created worktree /workspace/wt-cue on branch cue/evaluation from origin/main (3af4a4e); read AGENTS.md, problem_statement.md, README.md, dataset files
+* Read (did not modify) origin/hark/evidence-engine to produce reference predictions in /tmp
+* Added code/evaluation/{scorer.py,main.py,usage.py,custom_cases.py,analyze_samples.py,test_scorer.py,README.md,.gitignore}
+* Added code/evaluation/{evaluation_report.md,usage_report.md,sample_patterns.md} and code/evaluation/custom/{custom_requests.csv,custom_gold.csv}
+* Ran python3 -m unittest discover -s code/evaluation (28 tests OK); ran main.py score / check / custom / usage
+* Appended this entry to log.txt
+
+Context:
+tool=Cue task sub-agent (Cue personal-assistant app, delegated by the Cue coordinator agent)
+model=not exposed by the runtime (no authoritative identifier available in this session; coordinator please fill in before submission)
+branch=cue/evaluation
+repo_root=/workspace/wt-cue
+worktree=/workspace/wt-cue
+parent_agent=Cue coordinator
