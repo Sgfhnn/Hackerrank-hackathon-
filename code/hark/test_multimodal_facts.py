@@ -8,7 +8,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from ingest import load_activity  # noqa: E402
 from multimodal_facts import build  # noqa: E402
-from multimodal_hints import HINTS  # noqa: E402
 
 
 class MultimodalFactsTest(unittest.TestCase):
@@ -17,10 +16,9 @@ class MultimodalFactsTest(unittest.TestCase):
         links = {a["resource_id"] for a in load_activity() if a["event_type"] == "LINK_RESOURCE_IDENTITY"}
         cls.facts, cls.owners, cls.retention, cls.source = build(links)
 
-    def test_extraction_covers_every_hint(self):
-        for rid, (fid, sysid, tr, _) in HINTS.items():
-            self.assertEqual(self.source[rid], "extracted", rid)
-            self.assertIn((fid, sysid, tr), [(f, s, t) for f, s, t, _ in self.facts[rid]], rid)
+    def test_every_fact_is_from_extraction(self):
+        self.assertTrue(self.facts)
+        self.assertEqual(set(self.source.values()), {"extracted"})
 
     def test_audit_record_003_retained(self):
         fids = sorted(f[0] for f in self.facts["audit_record_003"])

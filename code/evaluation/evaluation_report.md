@@ -17,6 +17,9 @@ python3 code/evaluation/main.py check --pred output.csv
 python3 code/evaluation/main.py custom
 python3 code/evaluation/main.py custom --agent "python3 code/main.py --requests {requests} --out {out}"
 
+# generality: rename / shuffle / upper-case the 518 requests, rerun, require identical answers
+python3 code/evaluation/perturbation_check.py
+
 # token / cost report from code/evaluation/usage_log.jsonl
 python3 code/evaluation/main.py usage
 
@@ -338,3 +341,35 @@ cost $0. See `usage_report.md`.
 2. **F6 (new, Hark):** engine results depend on which requests are planned together
    (custom_04 / custom_07, section 8.2). Not triggered by the real 518 + samples batch.
 3. Nothing else failed: end-to-end run, selftest, `check`, intent tests and scorer tests are green.
+
+## 9. Generality check (`code/evaluation/perturbation_check.py`)
+
+The hidden grader scores cases we cannot see, so an answer must come from a request's content and the
+evidence, never from its `case_id` or its row position. The check rewrites `dataset/deletion_requests.csv`
+four ways, reruns the full agent (`code/main.py --requests ...`) on each copy, maps rows back to the
+original id, and requires `deletion_status` and `steps_json` to be byte-identical to the baseline:
+
+| Perturbation | What changes | First run (before fix) | After fix |
+| --- | --- | --- | --- |
+| shuffle | row order | 2 rows changed (steps only) | 0 |
+| rename | every case_id -> random `req_NNNNNN` | 22 rows changed | 0 |
+| shuffle+rename | both | 25 rows changed | 0 |
+| email_case | e-mail upper-cased | 0 | 0 |
+
+Status never changed in any run. All diffs were in the engine's last-resort assignment (account
+`DELETE` / un-owned follow-up activity with no ownership or fingerprint signal). It broke ties by the number
+inside `case_id` and by input order. Fix (Hark, `code/hark/engine.py::prepare`):
+
+- Cases are processed in content order: requested_at, reported_at, audit_at, email, then text. The
+  `guess` and `cluster-guess` tie-breaks use the same key.
+- Two requests from the same person for the same reported event (for example re-sent from another of
+  their e-mails) share one assignment instead of competing for the same activities. This also fixes
+  Cue finding F6 at the engine level: custom_04 and custom_07 pass with the base sample in the batch.
+
+Effect on the 518-row output: 43 rows change their steps, every one of them a no-signal guess, and
+0 statuses change. Measured on the cases resolved with real signal (owner / fingerprint, 385 pairs that
+share a window), neither tie-break predicts the account order better than chance: case-number order
+agrees with activity time 184/385, request-time order 201/385. So the new order costs nothing and removes
+the dependence on ids. Gates after the fix: selftest PASS, check 0 problems, samples status 32/32 and exact
+30/32, custom 7/8 (custom_06 = the known missing audit_record_6645), perturbation PASS.
+

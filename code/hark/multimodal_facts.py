@@ -1,8 +1,8 @@
 """Adapter: Muse's extracted multimodal facts (code/multimodal.py) -> Hark engine inputs.
 
 Source of truth is code/extracted/{documents,images}.json via code/multimodal.py.
-code/hark/multimodal_hints.py (hand-read OCR placeholders) is only a fallback for a resource the
-extraction does not cover (currently none: all 13 hinted resources are extracted).
+There is no hand-written fallback: a resource the extraction does not cover is simply not a
+multimodal fact (the hand-read multimodal_hints.py placeholders were removed for generality).
 
 Exports
   FACTS[rid]     -> list of (file_id, system_id, treatment, flags) one per artifact showing rid
@@ -14,7 +14,7 @@ Exports
                     the subject email printed in the document (support_001 / evidence_58).
   RETENTION      -> list of dicts {evidence_id, system_id, resource_id, user_id, order_id, retain_until}
                     from multimodal.retention_entries() (evidence_27 register, evidence_55/37 audit log).
-  SOURCE[rid]    -> "extracted" | "hint"
+  SOURCE[rid]    -> "extracted"
 """
 import os
 import re
@@ -26,7 +26,6 @@ if _CODE not in sys.path:
     sys.path.insert(0, _CODE)
 
 import multimodal  # noqa: E402  (code/multimodal.py, Muse)
-from multimodal_hints import HINTS, DOC_OWNERS as HINT_DOC_OWNERS  # noqa: E402
 
 # resource_type (as extracted) -> deletion_rules.csv action family used by Engine.plan
 TYPE_TREATMENT = {
@@ -100,8 +99,6 @@ def build(link_rids=()):
         for res in entry.get("resources", []):
             rid, rtype = res["resource_id"], res.get("resource_type")
             tr = TYPE_TREATMENT.get(rtype)
-            if tr is None and rid in HINTS:
-                tr = HINTS[rid][2]
             if tr is None:
                 continue
             if rtype == "retention_register":
@@ -127,14 +124,6 @@ def build(link_rids=()):
                     retention.append(dict(evidence_id=entry["evidence_id"], system_id=res["system_id"],
                                           resource_id=res["resource_id"], user_id=s.get("user_id"),
                                           order_id=None, retain_until=until))
-    # fallback: hand-read hints only where the extraction lacks the resource
-    for rid, (fid, sysid, tr, fl) in HINTS.items():
-        if rid not in facts:
-            facts[rid] = [(fid, sysid, tr, dict(fl))]
-            source[rid] = "hint"
-    for rid, em in HINT_DOC_OWNERS.items():
-        if rid not in owners and source.get(rid) == "hint":
-            owners[rid] = (HINTS[rid][0], {em.lower()})
     return facts, owners, retention, source
 
 

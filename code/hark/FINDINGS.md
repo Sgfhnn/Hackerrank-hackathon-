@@ -52,8 +52,7 @@ security audit record, and every downstream copy), not just the broken ones.
    `[requested_at, audit_at]` contains that LINK, NOT to every case of that user (sample case_07 ignores
    object_19 of Feb; case_17 ignores tombstone_17 of March). These are 12 test cases: 33,34,35,39,45,46,50,52,
    53,55,61,63 (users 18,11,13,14,03,17,20,18,22,16,07,09). States come from Muse's extraction (`code/extracted/*.json` via `code/multimodal.py`, adapted by
-   `code/hark/multimodal_facts.py`); `multimodal_hints.py` is only a fallback for a resource the extraction lacks
-   (none today). Of several artifacts for one resource (audit_record_003: evidence_55 PDF, evidence_37 PNG) the
+   `code/hark/multimodal_facts.py`) (no hand-written fallback). Of several artifacts for one resource (audit_record_003: evidence_55 PDF, evidence_37 PNG) the
    latest citable one (captured_at <= audit_at) is cited.
 5. Hand-made family (users <= ~22, cases 01-10 and the multimodal test cases): account id is
    `account_0NN` for `user_NN` (10/10 samples, incl. case_04 where no activity mentions it).

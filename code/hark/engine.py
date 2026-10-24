@@ -13,7 +13,7 @@ from datetime import timedelta
 from ingest import load_all, load_activity, DATASET, parse_ts, system_for, prefix_of, norm_email
 from identity import Identity, obs_matches
 from windows import window_of, offset_ok, residue_ok
-from multimodal_facts import build as build_multimodal  # Muse's extracted facts; hints only as fallback
+from multimodal_facts import build as build_multimodal  # Muse's extracted facts (code/extracted/*.json)
 
 OP_ORDER = ["REPORT_REMAINING_RECORD", "REPORT_EXPOSED_PII", "REPORT_ACTIVE_DATA_FLOW", "REPORT_RESTORE_RISK",
             "DISABLE_DATA_FLOW", "BLOCK_RESTORE", "DELETE_RECORD", "REDACT_RECORD", "ANONYMIZE_RECORD",
@@ -61,7 +61,7 @@ class Engine:
             if m:
                 self.act_by_rid[m.group(1)].append(a)
         self.links = [a for a in self.acts if a["event_type"] == "LINK_RESOURCE_IDENTITY"]
-        # multimodal (PNG/PDF) facts from code/multimodal.py; multimodal_hints.py only fills gaps
+        # multimodal (PNG/PDF) facts from code/multimodal.py
         self.mm_facts, self.mm_owners, self.retention, self.mm_source = build_multimodal(
             {a["resource_id"] for a in self.links})
         # account-coverage snapshot files (used to prove absence when no direct lookup exists)
@@ -133,7 +133,15 @@ class Engine:
         4. un-owned follow-ups go to the case whose account fingerprint matches (windows.residue_ok)."""
         self.case_user = {}
         self.case_R = {}
+        self.case_key = {}
         byR = collections.defaultdict(list)
+        # Content order, never case_id or row position: the answer for a request must not change when it
+        # is renamed or moved (checked by code/evaluation/perturbation_check.py).
+        def content_key(c):
+            return (parse_ts(c["requested_at"]), parse_ts(c["reported_at"]), parse_ts(c["audit_at"]),
+                    c["email"].strip().lower(), c["request_text"])
+        cases = sorted(cases, key=content_key)
+        rep_of, alias = {}, {}
         for c in cases:
             if not is_deletion_request(c["request_text"]):
                 continue
@@ -143,6 +151,13 @@ class Engine:
             self.case_user[c["case_id"]] = us[0]
             R = parse_ts(c["reported_at"])
             self.case_R[c["case_id"]] = R
+            self.case_key[c["case_id"]] = content_key(c)
+            if (us[0], R) in rep_of:
+                # same person, same reported event (e.g. re-sent from another of their emails): it shares the
+                # representative's assignment instead of competing with it for the same activities.
+                alias[c["case_id"]] = rep_of[(us[0], R)]
+                continue
+            rep_of[(us[0], R)] = c["case_id"]
             byR[R].append(c["case_id"])
         self.assign = collections.defaultdict(lambda: collections.defaultdict(set))  # case -> rid -> via
         acct_acts, other_acts = [], []
@@ -246,8 +261,8 @@ class Engine:
             claim_followups()
             if not changed:
                 break
-        # last resort: no signal left -> deterministic one-to-one guess (case order x activity time)
-        for cid in sorted(acct_cands, key=lambda c: int(c.split("_")[1])):
+        # last resort: no signal left -> deterministic one-to-one guess (request time x activity time)
+        for cid in sorted(acct_cands, key=lambda c: self.case_key[c]):
             if cid in case_acct:
                 continue
             free = sorted(free_accts(cid), key=lambda a: a["ts"])
@@ -284,10 +299,14 @@ class Engine:
                            and not (case_phase[cid] and phase(a) not in case_phase[cid])]
                 tag = ("cluster-ambiguous%d" % len(fit)) if len(fit) != 1 else "cluster-single"
                 if len(fit) > 1:
-                    fit, tag = sorted(fit, key=lambda c: int(c.split("_")[1]))[:1], "cluster-guess"
+                    fit, tag = sorted(fit, key=lambda c: self.case_key[c])[:1], "cluster-guess"
             self.ambiguous[tag] += 1
             for cid in fit:
                 self.assign[cid][a["resource_id"]].add(tag)
+        for cid, rep in alias.items():
+            if rep in case_acct:
+                case_acct[cid] = case_acct[rep]
+            self.assign[cid] = collections.defaultdict(set, {r: set(v) for r, v in self.assign[rep].items()})
 
     def case_resources(self, case, user_id, peers=None):
         """Returns {rid: {'via': set()}}: evidence-linked resources + assigned worker-cluster resources."""
