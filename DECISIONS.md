@@ -96,3 +96,5 @@ itself is parsed and compared in UTC.
 ## 2026-10-24 16:18 EAT — Partial-credit fallback (`solve_case`) — OpenCode
 
 - When a plug-in auditor returns a valid status but its steps fail validation, `solve_case` keeps the numbered, sorted plug-in answer and records the validation problems in the run summary instead of replacing the answer with `INCOMPLETE`/`[]`, preserving partial credit. Stub auditors skip validation, and only an unusable status still falls back to `INCOMPLETE`/`[]`.
+
+- 2026-10-24 16:21 EAT (coordinator edit): intent hook lookup order is `code/classifier.py::is_deletion_request(request)`, then Muse's `code/intent.py::classify_intent(request_text)` (adapted: `result.intent` starting with `DELETION`), then the stub (everything is a deletion request). Verified with Muse's intent.py from `muse/multimodal-intent`: 10 of 518 requests are NOT_APPLICABLE. Hark's engine lives in `code/hark/`, so Hark needs a thin `code/evidence.py::audit_case(ctx, request, subject) -> (status, steps)` wrapper for the evidence hook.

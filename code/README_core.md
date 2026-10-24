@@ -87,3 +87,7 @@ failures are listed in the run report; the affected case falls back to
 resolutions (418 current / 100 historical / 0 unresolved), timestamp parsing
 across every dataset CSV, `as_of` reverse-replay on a real audit chain, and a
 temporary output/check cycle.
+
+## Classifier hook lookup order
+
+`get_intent_classifier()` tries `code/classifier.py::is_deletion_request(request) -> bool`, then `code/intent.py::classify_intent(request_text)` (Muse; `result.intent` starting with `DELETION` means deletion), then a stub that returns True for every request.

@@ -821,10 +821,35 @@ def _stub_auditor(
 _stub_auditor.is_stub = True  # type: ignore[attr-defined]
 
 
+def _intent_module_adapter(classify_intent: Callable[..., Any]) -> Callable[[Request], bool]:
+    """Adapt Muse's ``intent.classify_intent(request_text)`` to ``Request -> bool``.
+
+    ``classify_intent`` returns an object whose ``intent`` is
+    ``"DELETION_REQUESTED"`` for authorized deletions.
+    """
+
+    def is_deletion_request(request: Request) -> bool:
+        result = classify_intent(request.request_text)
+        return str(getattr(result, "intent", result)).upper().startswith("DELETION")
+
+    is_deletion_request.is_stub = False  # type: ignore[attr-defined]
+    return is_deletion_request
+
+
 def get_intent_classifier() -> Callable[[Request], bool]:
-    """Return ``classifier.is_deletion_request`` or the documented stub."""
+    """Return the deletion-intent classifier.
+
+    Lookup order: ``code/classifier.py::is_deletion_request(request)``, then
+    Muse's ``code/intent.py::classify_intent(request_text)`` (adapted), then
+    the documented stub that treats every request as a deletion request.
+    """
     plugin = _load_plugin("classifier", "is_deletion_request")
-    return plugin if plugin is not None else _stub_classifier
+    if plugin is not None:
+        return plugin
+    adapted = _load_plugin("intent", "classify_intent")
+    if adapted is not None:
+        return _intent_module_adapter(adapted)
+    return _stub_classifier
 
 
 def get_evidence_auditor(warn: bool = True) -> Callable[..., Tuple[str, Any]]:

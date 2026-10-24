@@ -15,3 +15,4 @@ Append-only log of tools used on this worktree. Times are EAT.
 | 2026-10-24 16:16 | write | Created `DECISIONS.md`, `TOOLS.md`, and `code/README_core.md`. |
 | 2026-10-24 16:18 | coordinator-review | reviewed main.py, ran selftest/full run/32-sample strict-evidence test |
 | 2026-10-24 16:18 | edit | solve_case keeps plug-in steps on validation problems; stub auditor skips validation |
+| 2026-10-24 16:21 | coordinator edit | Added the `intent.py` (Muse) adapter to `get_intent_classifier`; tested it against Muse's branch copy of intent.py (not committed here). |
