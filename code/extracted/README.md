@@ -40,6 +40,35 @@ engine should treat them like any other evidence source:
 }
 ```
 
+## How these files are produced (repeatable)
+
+These JSON files are the output of a repeatable extraction step, not
+hand-typed answers. The pipeline is `code/extracted/extract.py`:
+
+1. **Mechanical stage (script).** The script reads
+   `dataset/evidence_files.csv` and selects the 4 PDFs + 11 PNGs. The
+   skeleton of every entry (`evidence_id`, `file`, `kind`, `source_origin`,
+   `captured_at`) is copied from the manifest — print it with
+   `python3 code/extracted/extract.py --skeleton`. PDF text layers are
+   extracted with `pdftotext -layout` (`--pdf-text <evidence_id>` prints
+   one); PNG headers are parsed with the stdlib. Subject identities and
+   resource ownership are resolved from `user_identities.csv`,
+   `user_audit_log.csv` and the `LINK_RESOURCE_IDENTITY` rows of
+   `system_activity.csv`.
+2. **Semantic stage (vision pass).** A vision-capable model reads each
+   screenshot and PDF text layer and fills the non-mechanical fields
+   (subjects, resources and their state at capture, verbatim-grounded
+   `facts`, policy flags, notes). Canonical `resource_id`s come from the
+   LINK rows, never from the label printed in the artifact; a differing
+   artifact label is kept as `display_id`.
+3. **Validation (script).** `python3 code/extracted/extract.py` (no
+   arguments) re-runs stage 1 and fails (exit 1) if any committed fact
+   disagrees with the manifest, a PDF text layer, the identity files or
+   the LINK rows. A subject that resolves nowhere is only accepted when
+   the entry's `notes` record it as an unresolved conflict — the
+   marketing_001 screenshot header is that case. Run it after any change
+   to these JSON files.
+
 ## Loaders
 
 Use `code/multimodal.py`:
