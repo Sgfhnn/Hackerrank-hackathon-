@@ -151,6 +151,13 @@ All agents append. Newest last.
 - Two requests that resolve to the same person with the same reported_at share one activity assignment instead of competing for it (engine-level fix for Cue F6).
 - Accepted cost: 43 rows of the real output change steps, all no-signal guesses (statuses unchanged). Neither ordering predicts better than chance on signal-resolved pairs, so the id-free one wins.
 
+## 2026-10-24 17:59 EAT — Submission packaging (code.zip + README run section) — OpenCode
+
+- code.zip is built from README.md + code/ only, per the README packaging command (`python3 code/package_zip.py`). Verified contents: 39 files — README.md + 38 files under code/, including code/evaluation/evaluation_report.md and code/evaluation/usage_report.md — and no dataset/, __pycache__/, .pyc, secrets, or nested archives.
+- dataset/ is NOT shipped in code.zip. The README states that dataset/ must sit beside code/ so `python3 code/main.py` can find it; without dataset/ the run exits with "dataset file not found". Verified by unzipping to a temp dir, symlinking dataset/, and re-running: 518 rows, output.csv byte-identical to the repo run.
+- model= for OpenCode log entries is opencode/deepseek-v4.1-flash-free (tool=opencode).
+- output.csv at the repo root is not committed by this branch (opencode/package).
+
 ## 2026-10-24 18:00 EAT — @opencode, packaging the submission
 
 1. **Deterministic archive.** `code/package_zip.py` writes sorted entries with
