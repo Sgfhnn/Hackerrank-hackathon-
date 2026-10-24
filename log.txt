@@ -598,3 +598,36 @@ branch=hark/log-closing-note
 repo_root=Sgfhnn/Hackerrank-hackathon-
 worktree=main
 parent_agent=none
+
+## [2026-10-24T19:30:00Z] SESSION START
+
+tool=Claude Code
+model=claude-opus-5-5
+Repo Root: /home/user/Hackerrank-hackathon-
+Branch: ccr-9b871468-mivlh5
+Worktree: main
+Parent Agent: none
+Language: py
+Time Remaining: not configured
+
+## [2026-10-24T19:30:00Z] Review of solution code (read-only)
+
+User Prompt (verbatim, secrets redacted):
+It's hackerrank hackathon check the solution code and tell me if it's good or need fixes
+Basically review it
+
+Agent Response Summary:
+Reviewed the solution without changing code. Ran the selftest, the full 518-case run, the sample scorer, the unit tests, the perturbation gate, the custom cases and the strict evidence check; all pass (32/32 sample status, 30/32 exact rows, 518 valid rows, deterministic). Main risk found: activity-to-case assignment relies on timing windows and a "d % 30" second-level fingerprint learned from the samples. Only 238 of 518 cases are tied to their account activity by evidence ownership; the other 280 are assigned by fingerprint, elimination or guess, so hidden-set accuracy is likely lower than the sample score suggests and judges may treat this as a generator-artifact shortcut. Also flagged: no root output.csv is committed, and earlier log entries carry model= values that do not satisfy AGENTS.md §5.
+
+Actions:
+* ran code/main.py --selftest, full run, --strict-evidence, --check; code/evaluation/main.py score/check/custom; unittest; perturbation_check.py
+* inspected code/hark/windows.py, engine.py, evidence.py, intent.py, usage_report.md
+* appended this entry to log.txt
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=ccr-9b871468-mivlh5
+repo_root=/home/user/Hackerrank-hackathon-
+worktree=main
+parent_agent=none
