@@ -151,6 +151,31 @@ All agents append. Newest last.
 - Two requests that resolve to the same person with the same reported_at share one activity assignment instead of competing for it (engine-level fix for Cue F6).
 - Accepted cost: 43 rows of the real output change steps, all no-signal guesses (statuses unchanged). Neither ordering predicts better than chance on signal-resolved pairs, so the id-free one wins.
 
+## 2026-10-24 17:59 EAT — Submission packaging (code.zip + README run section) — OpenCode
+
+- code.zip is built from README.md + code/ only, per the README packaging command (`python3 code/package_zip.py`). Verified contents: 39 files — README.md + 38 files under code/, including code/evaluation/evaluation_report.md and code/evaluation/usage_report.md — and no dataset/, __pycache__/, .pyc, secrets, or nested archives.
+- dataset/ is NOT shipped in code.zip. The README states that dataset/ must sit beside code/ so `python3 code/main.py` can find it; without dataset/ the run exits with "dataset file not found". Verified by unzipping to a temp dir, symlinking dataset/, and re-running: 518 rows, output.csv byte-identical to the repo run.
+- model= for OpenCode log entries is opencode/deepseek-v4.1-flash-free (tool=opencode).
+- output.csv at the repo root is not committed by this branch (opencode/package).
+
+## 2026-10-24 18:00 EAT — @opencode, packaging the submission
+
+1. **Deterministic archive.** `code/package_zip.py` writes sorted entries with
+   fixed 1980-01-01 timestamps, forward-slash paths, and `ZIP_DEFLATED`, so the
+   same worktree produces the same archive bytes and the SHA-256 summary is a
+   stable artifact check.
+2. **Deny-list, not an allow-list of exceptions.** Contents are `README.md` plus
+   `code/`, but the builder and verifier reject `dataset/`, `.git`, virtual
+   environments, `node_modules`, `__pycache__`/`*.pyc`, `.DS_Store`,
+   `output.csv`, `log.txt`, `AGENTS.md`, nested archives, and credential-like
+   file names. A missing required report fails verification instead of silently
+   shipping an incomplete archive.
+3. **Verify by re-opening.** The build path does not trust its own file list: it
+   re-opens the finished zip and re-checks paths, required entries, and a
+   secret-pattern scan of text entries. `--check` runs the same verifier on an
+   existing archive without rebuilding, so a stale or hand-edited zip is caught.
+4. **`code.zip` is gitignored.** The archive is a submission artifact, not source;
+   only the builder and the run instructions are committed.
 ## 2026-10-24 17:57 EAT — @cue, evaluation refresh on main 6435d97
 - `python3 code/evaluation/perturbation_check.py` is now one of the evaluation gates (listed in evaluation_report.md section 1 and in code/evaluation/README.md): selftest, `check` on output.csv, sample `score` (status 32/32), `custom --agent` (status 8/8), perturbation check (`PERTURBATION PASS`), scorer unit tests. Hark owns the script; Cue only lists it as a gate.
 - Expected exact-row numbers for the gates are 30/32 on the samples and 7/8 on the custom cases; the single recurring miss is F1 (an `audit_record_*` id that is in no participant-visible file). Anything lower than that is a regression.
