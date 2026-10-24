@@ -671,3 +671,44 @@ branch=ccr-9b871468-mivlh5
 repo_root=/home/user/Hackerrank-hackathon-
 worktree=main
 parent_agent=none
+
+## [2026-10-24T20:00:00Z] Review of merged PR #18/#19 (matching docs)
+
+User Prompt (verbatim, secrets redacted):
+Merged now what you think
+
+Agent Response Summary:
+Reviewed the merged changes on main 4fc3297: evaluation_report.md section 10 documents the evidence-first matching order, the coverage table (sums to 518) and the ablation, and the engine/windows comments were neutralized with no logic change. Verified on a clean worktree of main: selftest PASS, 518-row output byte-identical to the reviewed run, samples 32/32 status and 30/32 exact, perturbation PASS. Remaining before submission: generate and check root output.csv, rebuild code.zip from the new main; 12 of the 518 requests resolve to user_id <= 30, where the now-disclosed naming-convention fallback can apply.
+
+Actions:
+* git worktree of origin/main in scratchpad; ran selftest, full run, cmp, sample score, perturbation_check
+* fast-forwarded branch ccr-9b871468-mivlh5 to origin/main (PR #18 merged); appended this entry to log.txt
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=ccr-9b871468-mivlh5
+repo_root=/home/user/Hackerrank-hackathon-
+worktree=main
+parent_agent=none
+
+## [2026-10-24T20:15:00Z] Generate output.csv and rebuild code.zip
+
+User Prompt (verbatim, secrets redacted):
+generate output.csv and rebuild code.zip
+
+Agent Response Summary:
+Generated the root output.csv from main 4fc3297 with python3 code/main.py (518 rows: COMPLETE 152, INCOMPLETE 356, NOT_APPLICABLE 10; 0 validation problems; core check and evaluation check both OK). The file is byte-identical to the reviewed run (sha256 7acffa90a4196b27ce75dc989180139a055a164698ccdb584720824ed78dec82). Rebuilt code.zip with code/package_zip.py after clearing __pycache__: 41 entries, verify status OK, includes evaluation report section 10 and usage_report.md, no dataset or nested archives (sha256 f5910e20e76edeaf7c365222fdcea04ff5f2e5f9bfa5f37aa0057f9134109087). output.csv committed; code.zip stays gitignored and was sent to the user directly.
+
+Actions:
+* python3 code/main.py; python3 code/main.py --check output.csv; python3 code/evaluation/main.py check --pred output.csv
+* python3 code/package_zip.py; python3 code/package_zip.py --check
+* committed output.csv and this log entry on ccr-9b871468-mivlh5
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=ccr-9b871468-mivlh5
+repo_root=/home/user/Hackerrank-hackathon-
+worktree=main
+parent_agent=none
