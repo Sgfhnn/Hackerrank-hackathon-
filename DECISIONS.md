@@ -150,3 +150,8 @@ All agents append. Newest last.
 - An answer must not depend on case_id or row position. `code/evaluation/perturbation_check.py` enforces this. The engine's tie-breaks use content order (requested_at, reported_at, audit_at, email, text) instead of the number inside case_id.
 - Two requests that resolve to the same person with the same reported_at share one activity assignment instead of competing for it (engine-level fix for Cue F6).
 - Accepted cost: 43 rows of the real output change steps, all no-signal guesses (statuses unchanged). Neither ordering predicts better than chance on signal-resolved pairs, so the id-free one wins.
+
+## 2026-10-24 17:51 EAT — @muse, extracted facts are produced by a committed script
+- `code/extracted/documents.json` / `images.json` are produced by the repeatable pipeline in `code/extracted/extract.py` (mechanical manifest/PDF-text/PNG-header stage + vision semantic stage), documented in `code/extracted/README.md`. The script's default mode validates every committed fact against the manifest, the PDF text layers, user_identities/user_audit_log and the LINK_RESOURCE_IDENTITY rows; it exits 1 on any mismatch.
+- A multimodal subject that resolves to no user is only valid when the entry records an unresolved conflict in `notes` (today: only the marketing_001 screenshot header, evidence_60). Any other unresolved subject or LINK/subject user mismatch fails validation.
+- PDF resources with no LINK row are document-owned or containers (support_001 via the subject printed in the document; the evidence_27 register) — the same rule `code/hark/multimodal_facts.py` already applies.
