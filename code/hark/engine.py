@@ -28,8 +28,9 @@ STATE = {"REPORT_REMAINING_RECORD": "PRESENT", "REPORT_EXPOSED_PII": "PRESENT", 
          "VERIFY_RECORD_ANONYMIZED": "ANONYMIZED", "VERIFY_DATA_FLOW_DISABLED": "DISABLED",
          "VERIFY_RESTORE_BLOCKED": "BLOCKED"}
 
-# deletion-worker cluster window relative to reported_at (minutes); learned from the 32 samples:
-#   account DELETE at R-75..R-45 (generated) / R-6..R+9 (hand-made), policy SUCCESS at R-28/-21/-14/-7,
+# Time-proximity heuristic (fallback only; evidence that names the subject always wins).
+# Deletion-worker activity window relative to reported_at (minutes), observed on the 32 solved samples:
+#   account DELETE at R-75..R-45 (most cases) / R-6..R+9 (older low-id cases), policy SUCCESS at R-28/-21/-14/-7,
 #   FAILED / CHECK_* follow-ups at R+38..R+115.
 WIN_LO, WIN_HI = -85, 125
 WORKER_TYPES = {"DELETE_RECORD", "ANONYMIZE_RECORD", "REDACT_RECORD", "DISABLE_DATA_FLOW", "BLOCK_RESTORE",
@@ -340,7 +341,7 @@ class Engine:
                     del res[r]
         if not any(r.startswith("account_") for r in res):
             n = int(user_id.split("_")[1])
-            if n <= 30:  # hand-made case family: account_0NN mirrors user_NN (10/10 samples)
+            if n <= 30:  # naming-convention fallback, used only when no account was linked: account_0NN mirrors user_NN in all 10 low-id samples
                 res["account_%03d" % n] = {"via": {"account:pattern"}}
         return res
 

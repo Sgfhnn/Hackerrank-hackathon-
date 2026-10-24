@@ -27,8 +27,9 @@ def offset_ok(a, R):
     return w[0] <= d <= w[1]
 
 
-# Second-level fingerprint: every follow-up activity of a case is offset from that case's account
-# DELETE ("submitted primary profile") by d seconds with d mod 30 in a fixed band (learned on samples):
+# Timing fingerprint (time-proximity heuristic, fallback only): when several requests share a reported_at
+# window, follow-up activities are matched to the account DELETE ("submitted primary profile") whose
+# offset d (seconds) falls in a band observed on the 32 solved samples (not guaranteed on hidden data):
 #   "Policy action completed"            -> d in [1200, 4200], d % 30 in {9,10,11}
 #   "received the final result"/CHECK_*/Replication -> d in [5000, 10500], d % 30 in {20,21,22}
 def residue_ok(a, acct):
@@ -39,4 +40,4 @@ def residue_ok(a, acct):
     if any(p in det for p in ("received the final result", "Connector status check", "Restore-access check",
                               "Replication worker")):
         return 4500 <= d <= 11500 and d % 30 in (20, 21, 22)
-    return None  # not applicable (hand-made cases)
+    return None  # no fingerprint for this activity type (older low-id cases)

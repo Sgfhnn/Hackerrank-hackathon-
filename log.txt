@@ -599,6 +599,25 @@ repo_root=Sgfhnn/Hackerrank-hackathon-
 worktree=main
 parent_agent=none
 
+## [2026-10-24T22:30:00+03:00] Hark — document case-to-activity matching (no logic change)
+
+User Prompt (verbatim, secrets redacted):
+Claude said you are right, and my data agrees. Don't rewrite tonight. [...] You fix that with honest documentation, not new code. Before the freeze I'd do these, all with no code risk: 1. Add a short "Case-to-activity matching" section to code/evaluation/evaluation_report.md. [...]
+
+Agent Response Summary:
+Following the Claude Code review and Anu's decision not to rewrite the matching before the freeze, documented it honestly instead. Added evaluation_report.md section 10, which covers the matching order (evidence first, time-proximity fingerprint as a fallback, then elimination, then deterministic guess), coverage counts recomputed from Engine.case_acct on the 518 rows (238 evidence, 179 + 11 fingerprint, 30 elimination, 18 + 20 guesses, 22 with no account activity), the fact that the windows and bands were learned from the 32 samples (hidden-set accuracy likely lower), Claude's ablation (30/32 to 20/32 without the seconds-offset check), and the account_0NN naming-convention fallback. Reworded comments in code/hark/engine.py and windows.py that said "generated"/"hand-made" so they describe the heuristic and its fallback role. Comments only. output.csv byte-identical (sha256 7acffa90...), selftest PASS, check 0 problems, evaluation check OK, perturbation PASS.
+
+Actions:
+* edited code/evaluation/evaluation_report.md (new section 10)
+* edited comments in code/hark/engine.py, code/hark/windows.py
+* appended this entry to log.txt
+* branch hark/linking-docs from origin/main; PR into main
+
+Context:
+tool=Hark
+model=not exposed by the Hark runtime (multi-model router; no authoritative identifier available, none guessed)
+branch=hark/linking-docs
+repo_root=Sgfhnn/Hackerrank-hackathon-
 ## [2026-10-24T19:30:00Z] SESSION START
 
 tool=Claude Code
