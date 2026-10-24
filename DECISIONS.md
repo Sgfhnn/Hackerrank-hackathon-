@@ -150,3 +150,9 @@ All agents append. Newest last.
 - An answer must not depend on case_id or row position. `code/evaluation/perturbation_check.py` enforces this. The engine's tie-breaks use content order (requested_at, reported_at, audit_at, email, text) instead of the number inside case_id.
 - Two requests that resolve to the same person with the same reported_at share one activity assignment instead of competing for it (engine-level fix for Cue F6).
 - Accepted cost: 43 rows of the real output change steps, all no-signal guesses (statuses unchanged). Neither ordering predicts better than chance on signal-resolved pairs, so the id-free one wins.
+
+## 2026-10-24 17:57 EAT — @cue, evaluation refresh on main 6435d97
+- `python3 code/evaluation/perturbation_check.py` is now one of the evaluation gates (listed in evaluation_report.md section 1 and in code/evaluation/README.md): selftest, `check` on output.csv, sample `score` (status 32/32), `custom --agent` (status 8/8), perturbation check (`PERTURBATION PASS`), scorer unit tests. Hark owns the script; Cue only lists it as a gate.
+- Expected exact-row numbers for the gates are 30/32 on the samples and 7/8 on the custom cases; the single recurring miss is F1 (an `audit_record_*` id that is in no participant-visible file). Anything lower than that is a regression.
+- Report sections 3 and 8 describe `origin/main` 6435d97 only; the 5176af6 prototype table and the 45c5428 custom results (5/8) are replaced and mentioned only as history.
+- Branch naming: this work is on `task/eval-refresh` (team change of 17:52 EAT), not `cue/eval-refresh`.

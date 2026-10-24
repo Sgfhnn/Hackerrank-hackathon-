@@ -27,6 +27,17 @@ python3 code/evaluation/main.py usage
 python3 -m unittest discover -s code/evaluation -p "test_*.py"
 ```
 
+**Evaluation gates (run all of them before submitting; every one must pass):**
+
+| # | Command | Pass condition |
+| --- | --- | --- |
+| 1 | `python3 code/main.py --selftest` | `SELFTEST PASS` |
+| 2 | `python3 code/main.py` then `python3 code/evaluation/main.py check --pred output.csv` | 518 rows, `RESULT: OK` |
+| 3 | `python3 code/evaluation/main.py score --pred <samples_pred.csv> --min-status-acc 1.0` | status 32/32 (exact rows 30/32 expected, F1 is known) |
+| 4 | `python3 code/evaluation/main.py custom --agent "python3 code/main.py --requests {requests} --out {out}"` | status 8/8 (exact 7/8 expected) |
+| 5 | `python3 code/evaluation/perturbation_check.py` | `PERTURBATION PASS` (0 status changes, 0 rows changed) |
+| 6 | `python3 -m unittest discover -s code/evaluation -p "test_*.py"` | all tests OK |
+
 Useful flags for `score`: `--failures 20` (print more mismatching cases),
 `--json out.json` (everything incl. per-case results), `--min-status-acc 0.95` (exit code 1
 below the threshold, for CI), `--update-report code/evaluation/evaluation_report.md`
@@ -75,32 +86,32 @@ sample gold rows (all pass), so they are not stricter than the real data:
 5. For the whole file (`check`): exact header, one row per request in
    `dataset/deletion_requests.csv` (518), no duplicates, no extras, request order.
 
-## 3. Reference results (as of repo state `origin/main` 3af4a4e)
-> Superseded by section 8: main (45c5428) now runs end to end and was scored there. This section is kept as the original prototype reference.
-
-
-There is no end-to-end `code/main.py` output yet, so these runs use Hark's prototype
-(`origin/hark/evidence-engine` 5176af6) purely as a sanity reference for the scorer. They
-do not measure the final system, and its rules were derived from the same 32 samples, so
-they are an optimistic upper bound.
+## 3. Reference results (as of repo state `origin/main` 6435d97)
+Reproduced on 2026-10-24 (EAT) from a fresh worktree of `origin/main`. All numbers come from
+commands in section 1. No model or network call is involved. The 32 samples have gold; the 518
+real rows have none, so they only get structural and consistency checks.
 
 | Run | Status acc | Exact rows | Step P / R / F1 | Sequence exact | Notes |
 | --- | ---: | ---: | --- | ---: | --- |
 | Gold vs gold (scorer self-check) | 1.0000 | 32/32 | 1.00 / 1.00 / 1.00 | 1.0000 | proves the scorer has no bias |
-| Hark prototype, 32 samples | 1.0000 | 30/32 | 1.00 / 0.99 / 0.995 | 0.9375 | 2 misses, see below |
-| Hark prototype, 8 custom cases | 1.0000 | 7/8 | see section 5 | 0.875 | same single miss |
-| Hark prototype, 518-row `check` | n/a | n/a | n/a | n/a | structure and evidence rules OK; 356 INCOMPLETE / 152 COMPLETE / 10 NOT_APPLICABLE |
+| `main` (6435d97), 32 samples | 1.0000 (32/32) | 30/32 (0.9375) | 1.0000 / 0.9896 / 0.9948 | 0.9375 | 2 misses, the known F1 (below) |
+| `main` (6435d97), 8 custom cases | 1.0000 (8/8) | 7/8 (0.8750) | 1.0000 / 0.9773 / 0.9885 | 0.8750 | 1 miss: custom_06 (F1) |
+| `main` (6435d97), 518-row `check` | n/a | n/a | n/a | n/a | OK, ready to submit; 356 INCOMPLETE / 152 COMPLETE / 10 NOT_APPLICABLE |
+| `main` (6435d97), perturbation check | n/a | n/a | n/a | n/a | PASS: shuffle, rename, shuffle+rename, e-mail case all give 0 status and 0 row changes |
 
-(The briefing quoted status 0.97 / step F1 0.91 for an earlier prototype; the current
-branch scores higher, which is consistent with the later commits.)
+Movement since the 45c5428 reference (section 8 of the previous revision): samples unchanged
+(32/32 status, 30/32 exact); custom cases 5/8 -> **7/8** exact (custom_04 and custom_07 now pass
+because Hark's `engine.prepare` is content-ordered and shares one assignment between requests
+from the same person for the same reported event, which fixed Cue finding F6); the 518-row
+output keeps all 518 statuses and changes the steps of 43 rows, all no-signal guesses (checked
+by diffing the 45c5428 and 6435d97 outputs: 0 status changes, 43 `steps_json` changes).
 
-**The two misses** (`case_18`, `case_20`) are the same kind: the gold row contains a
-`VERIFY_RECORD_PRESENT` for a `security_service` `audit_record_*` that appears in no
+**The two sample misses** (`case_18`, `case_20`) are the same kind as before: the gold row
+contains a `VERIFY_RECORD_PRESENT` for a `security_service` `audit_record_*` that appears in no
 participant-visible file, so no evidence-based engine can reproduce it, only a heuristic
-("every user has one audit record"). The scorer reports each as a *missing step*, nothing
-else: status, order and all other fields are right (field accuracy 0.987 over all 7 fields).
-This is a useful example of why step-level and row-level numbers are both reported:
-status accuracy is 100%, but the answer is not an exact match.
+("every user has one audit record"). The scorer reports each as a *missing step*, nothing else.
+The earlier prototype reference (5176af6, 30/32 and 7/8 on the samples and custom cases) is
+superseded: main now matches it on both sets without hand-read multimodal hints.
 
 ## 4. How to read a failure
 
@@ -136,7 +147,7 @@ samples contain none, while the real file has 10: `case_533..542`). Because each
 from a different sample, no two share a `reported_at` timestamp, which matters for engines
 that link system activity to a request through that time.
 
-**Result on Hark's prototype (5176af6; main is in section 8.2: 5/8 exact, status 8/8):** 7/8 exact, status 8/8. The only miss is `custom_06`, the
+**Result on Hark's prototype (5176af6; main at 6435d97 is in section 8.2: 7/8 exact, status 8/8):** 7/8 exact, status 8/8. The only miss is `custom_06`, the
 same unrecoverable audit record as in `case_18`. The cases passed only when the engine
 planned the custom requests together with the real 518; mixing them with the 32 samples
 in one batch made `custom_04`, `custom_06` and `custom_07` fail with a wrong account id,
@@ -191,7 +202,7 @@ The block between the markers is rewritten by
 Re-run it on the final sample predictions before submitting.
 
 <!-- METRICS:START -->
-### Latest run: main @ 45c5428 (python3 code/main.py) on the 32 samples
+### Latest run: main @ 6435d97 (python3 code/main.py) on the 32 samples
 
 Scored 32 case(s) (gold 32, predicted rows 32, missing 0, extra 0, unparseable 0, rows with contract issues 0).
 
@@ -259,88 +270,86 @@ Scored 32 case(s) (gold 32, predicted rows 32, missing 0, extra 0, unparseable 0
 ```
 <!-- METRICS:END -->
 
-### 8.1 Real run on main (`python3 code/main.py`, commit 45c5428)
-Run on 2026-10-24 (EAT) in a fresh worktree of `origin/main`; no model or network calls,
-3.4 s wall time, output byte-identical across two runs.
+### 8.1 Real run on main (`python3 code/main.py`, commit 6435d97)
+Run on 2026-10-24 (EAT) in a fresh worktree of `origin/main` (branch `task/eval-refresh`); no
+model or network calls, 3.4 s wall time, `output.csv` byte-identical across two runs
+(md5 ac01f7a4be3f9d2ff703ec1aee28c835).
 
 | Check | Result |
 | --- | --- |
-| `python3 code/main.py` | 518 rows written to `output.csv` (519 lines with header); plug-ins `classifier=installed evidence=installed`, 0 validation/plug-in problems |
-| `python3 code/main.py --selftest` | PASS (32/32 sample round-trips, 6911 timestamp cells, 0 failures) |
+| `python3 code/main.py` | 518 rows written to `output.csv`; plug-ins `classifier=installed evidence=installed`, 0 validation/plug-in problems |
+| `python3 code/main.py --selftest` | PASS |
 | `python3 code/main.py --check output.csv` | 0 problems |
 | `python3 code/evaluation/main.py check --pred output.csv` | **OK, ready to submit**: 518 rows, natural case order, all evidence ids exist and predate `audit_at` |
-| Status counts (518) | COMPLETE 152, INCOMPLETE 356, NOT_APPLICABLE 10 (`case_533..542`, the same 10 the intent classifier flags in `code/test_intent.py`: 508 deletion / 10 not) |
+| `python3 code/evaluation/perturbation_check.py` | **PERTURBATION PASS**: shuffle / rename / shuffle+rename / e-mail case: 0 status changes, 0 rows changed each |
+| Status counts (518) | COMPLETE 152, INCOMPLETE 356, NOT_APPLICABLE 10 (the same 10 the intent classifier flags: 508 deletion / 10 not) |
 | Steps (518) | 3,247 in total; COMPLETE rows average 3.4 steps, INCOMPLETE rows 7.7 (max 14); `[]` only on the 10 NOT_APPLICABLE rows |
-| Unit tests | 28 scorer tests OK; intent tests PASS (32 samples + 518 requests) |
+| Unit tests | 28 scorer tests OK; 4 `code/hark` tests OK; intent tests PASS (32 samples + 518 requests) |
+| `python3 code/evaluation/batch_check.py` | custom_04 and custom_07 PASS in all three batch compositions; custom_06 differs only by the F1 step |
 
 Only the 32 samples have gold. The 518-row result has no accuracy number; `check` proves the
-file is well-formed, ordered and time-consistent, nothing more.
+file is well-formed, ordered and time-consistent, and the perturbation check proves it does not
+depend on case ids, row order or e-mail case. Nothing more.
 
 **Samples (section above):** status accuracy 32/32, exact rows 30/32 (0.9375), step F1 0.9948.
 The two misses are the known F1 rows, each lacking one `security_service` verification
 (`case_18` `audit_record_6645`, `case_20` `audit_record_5569`). Both ids appear in no
-participant-visible file, so the engine cannot derive them. Same numbers as the 5176af6
-prototype: merging the four PRs changed nothing on the samples.
+participant-visible file, so the engine cannot derive them. The merges of PRs #5 to #10
+(canonical resource ids, adapter fix, retention wiring, generality hardening) changed nothing on
+the samples.
 
 **Gold-free signal on the real file (audit-record step).** In the gold samples 17 of 22
 INCOMPLETE rows (77%) carry a `VERIFY_RECORD_PRESENT` on an `audit_record_*`; on the real file
-245 of 356 (69%) do, and 151 of 152 COMPLETE rows do (gold: 7 of 10). The 111 INCOMPLETE rows
-without it are where a missing step of the same type as `case_18` / `case_20` would sit if the
-record is not discoverable from the supplied files. This is not proof of an error (the gold
-samples also have 5 such INCOMPLETE rows), just where one would be.
+245 of 356 (69%) do, and 151 of 152 COMPLETE rows do (gold: 7 of 10). Unchanged from 45c5428.
+The 111 INCOMPLETE rows without it are where a missing step of the same type as `case_18` /
+`case_20` would sit if the record is not discoverable from the supplied files. This is not proof
+of an error (the gold samples also have 5 such INCOMPLETE rows), just where one would be.
 
 ### 8.2 Custom cases on main (`custom --agent "python3 code/main.py --requests {requests} --out {out}"`)
-Status 8/8 correct. Exact rows **5/8** (0.6250), step micro F1 0.9176, mean per-case step F1
-0.9474.
+Status 8/8 correct. Exact rows **7/8** (0.8750), step micro P / R / F1 1.0000 / 0.9773 / 0.9885,
+mean per-case step F1 0.9954. Previous run (45c5428): 5/8 exact, F1 0.9176.
 
 | Case | Base | Result | Detail |
 | --- | --- | --- | --- |
 | custom_01, 02, 03 | case_11, 15, 26 | PASS | `NOT_APPLICABLE` with `[]` (information request, marketing-only, profile correction) |
+| custom_04 | case_29 | PASS (was FAIL) | account step is now `account_7012` |
 | custom_05 | case_05 | PASS | upper-cased email |
+| custom_07 | case_28 | PASS (was FAIL) | `account_5482` and the `analytics_6077` `VERIFY_RECORD_ANONYMIZED` step present |
 | custom_08 | case_16 | PASS | Korean request text |
-| custom_04 | case_29 | **FAIL** | status right; account step uses `account_029` instead of `account_7012` (1 step missing, 1 extra) |
-| custom_07 | case_28 | **FAIL** | status right; `account_028` instead of `account_5482`, and the `analytics_6077` `VERIFY_RECORD_ANONYMIZED` step is missing |
-| custom_06 | case_18 | **FAIL** | status right; `account_5521` verification and the `audit_record_6645` step missing (the latter is the known F1) |
+| custom_06 | case_18 | **FAIL** | status right; the `audit_record_6645` step is missing (the known F1). The `account_5521` verification, missing at 45c5428, is now present |
 
-**Failure cause for custom_04 / 06 / 07 (precise).** It is the planning-together dependence.
-`code/evidence.py` always prepares the Hark engine on `sample_deletion_requests.csv` +
-`deletion_requests.csv` + the requests in the run, and `Engine.prepare` assigns activity to
-requests globally by `reported_at` window. A custom variant has the same `reported_at` and user
-as its base sample, and the account `DELETE_RECORD` activity is assigned one-to-one: in batch A
-`case_29`, `case_28`, `case_18` get `account_7012`, `account_5482`, `account_5521` (`fingerprint`)
-while `custom_04`, `custom_07`, `custom_06` get no account at all. `custom_04` and `custom_07`
-(users 29 and 28, in the hand-made family `n <= 30`) then fall back to the pattern `account_0NN`
-in `engine.py`; `custom_06` (user 50) gets nothing. The collisions with real cases (`case_51`,
-`case_539`) are harmless: batch C passes.
-Reproduce with `python3 code/evaluation/batch_check.py`:
+Reproduce the batch dependence with `python3 code/evaluation/batch_check.py`:
 
 | Batch | custom_04 | custom_06 | custom_07 |
 | --- | --- | --- | --- |
-| A. samples + real 518 + custom (what main does) | DIFF | DIFF | DIFF |
+| A. samples + real 518 + custom (what main does) | PASS | DIFF (F1 only) | PASS |
 | B. samples minus the 3 base cases + real 518 + custom | PASS | DIFF (F1 only) | PASS |
 | C. real 518 + custom | PASS | DIFF (F1 only) | PASS |
 
-So custom_04 and custom_07 are a pure batch artefact (they pass as soon as their base sample
-is not in the batch) and custom_06 is a genuine F1 miss. Impact on the real submission: the
-real file is planned as one batch with the samples in every run, so this does not change
-`output.csv`; the risk is for a hidden or re-ordered request set whose `reported_at` values
-collide, where the result of one request depends on others. In `custom_04` and `custom_07` the
-status stayed correct, but the wrong or missing account would cost steps. Owner of the fix: Hark
-(`code/hark/engine.py` `prepare`, `code/evidence.py`); not edited here. Section 5's earlier
-"7/8 exact" was measured on the 5176af6 prototype with a different batch (real 518 + custom,
-no samples); on main the adapter adds the samples, hence 5/8.
+At 45c5428 batch A failed all three; F6 (the answer depends on which requests are planned
+together) is fixed for this case family. Two requests that resolve to the same person and the
+same reported event now share one assignment. Requests of different people that collide on
+`reported_at` (for example `case_18`, `case_20`, `case_27`, `case_28`, `case_29`, `case_51`,
+`case_539`) are not covered by these 8 cases; the perturbation check covers ordering and naming
+but not new colliding people.
 
 ### 8.3 Usage
-No model calls anywhere in the main pipeline (no network or LLM client imported; the intent
-classifier's optional `llm_call` is not supplied): 0 input tokens, 0 output tokens, estimated
-cost $0. See `usage_report.md`.
+No model calls anywhere in the main pipeline (no network or LLM client imported, re-checked at
+6435d97; the intent classifier's optional `llm_call` is not supplied; `code/multimodal.py` and
+`code/hark/multimodal_facts.py` read pre-extracted `code/extracted/*.json`): 0 input tokens, 0
+output tokens, estimated cost $0. `usage_log.jsonl` does not exist. See `usage_report.md`
+(current for 6435d97).
 
 ### 8.4 Failures and open items from this run
 1. **F1 (open, Hark/OpenCode):** `case_18` and `case_20` miss one `security_service` audit-record
-   verification each; 111 of 356 INCOMPLETE rows in `output.csv` have no such step.
-2. **F6 (new, Hark):** engine results depend on which requests are planned together
-   (custom_04 / custom_07, section 8.2). Not triggered by the real 518 + samples batch.
-3. Nothing else failed: end-to-end run, selftest, `check`, intent tests and scorer tests are green.
+   verification each (custom_06 inherits it); 111 of 356 INCOMPLETE rows in `output.csv` have no
+   such step.
+2. **F6 (fixed in 6435d97):** batch dependence in the custom case family. No new failure.
+3. **Observation (not a failure):** 43 of 518 rows changed steps with the id-free ordering; they
+   are no-signal guesses, so the change cannot be scored without gold. It is the accepted cost
+   recorded in DECISIONS.md (Hark, 18:05 EAT).
+4. Nothing else failed: end-to-end run, selftest, `check`, perturbation check, intent tests,
+   hark tests and scorer tests are green.
 
 ## 9. Generality check (`code/evaluation/perturbation_check.py`)
 

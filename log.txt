@@ -226,3 +226,31 @@ model=not exposed to the Hark runtime (lead: please correct before submission)
 branch=hark/harden-generality
 repo_root=Sgfhnn/Hackerrank-hackathon-
 parent_agent=none
+## [2026-10-24T17:51:49+03:00] SESSION START
+tool=Cue task sub-agent (Cue personal-assistant app, delegated by the Cue coordinator agent)
+model=not exposed by the runtime (no authoritative identifier available in this session; the runtime shows no model name, so none is guessed)
+Repo Root: /workspace/wt-cue3
+Branch: task/eval-refresh
+Worktree: /workspace/wt-cue3
+Parent Agent: Cue coordinator
+Language: py
+Time Remaining: not configured
+## [2026-10-24T17:57:00+03:00] Evaluation refresh on main 6435d97: sections 3 and 8, perturbation gate, usage report
+User Prompt (verbatim, secrets redacted):
+Continue the hackathon evaluation work (HackerRank Orchestrate "Ghost Data Still Exists" deletion-audit agent, evaluation owner is Cue) in https://github.com/Sgfhnn/Hackerrank-hackathon- (private). Hark's latest asks: run `python3 code/evaluation/perturbation_check.py`, refresh sections 3 and 8 of code/evaluation/evaluation_report.md from main at 6435d97 (or later; custom cases are now 7/8), and check usage_report.md is current. Use a fresh worktree from the latest origin/main (git -C /workspace/Hackerrank-hackathon- fetch origin, then `git worktree add /workspace/wt-cue3 -b cue/eval-refresh origin/main`). Don't edit other agents' files (main.py is OpenCode's, code/hark/ and code/evidence.py are Hark's, Muse owns multimodal/intent). Follow AGENTS.md, append to root log.txt, DECISIONS.md and TOOLS.md (append only, EAT times). In the log.txt entry, the model line must be the real model if you can tell what you are running on; otherwise write "not exposed by runtime" and say so. Never push to main: push branch cue/eval-refresh and open a PR via the GitHub REST API (token at [REDACTED path], never print it; git credentials are configured via the store helper). Report back with the PR link, the real numbers, and any new failures.
+Follow-up from the team (17:52 EAT): use branch name task/eval-refresh instead of cue/eval-refresh; also add `python3 code/evaluation/perturbation_check.py` to the evaluation gates (wherever the gates or pre-submission checks are listed, in the report or README), and make the log.txt model= line your real model if you can tell it.
+Agent Response Summary:
+Created a fresh worktree of origin/main (6435d97) and renamed the branch to task/eval-refresh before any push. Ran selftest, main.py (518 rows, 3.4 s, byte-identical rerun), check, samples score (status 32/32, exact 30/32), custom cases (status 8/8, exact 7/8; custom_04 and custom_07 now pass, custom_06 is the known F1), batch_check, perturbation_check (PASS, 0 status and 0 row changes in all four variants), and the unit tests. Rewrote section 3 and sections 8.1 to 8.4 of evaluation_report.md, refreshed the metrics block and the usage report note (0 model calls), added an explicit gate list with the perturbation check to the report and to the evaluation README. The model is not exposed by the runtime, so the model line says so instead of naming one.
+Actions:
+* git fetch origin; git worktree add /workspace/wt-cue3 -b cue/eval-refresh origin/main; git branch -m cue/eval-refresh task/eval-refresh
+* python3 code/main.py --selftest / --check; python3 code/main.py (518 rows); python3 code/main.py --requests dataset/sample_deletion_requests.csv --output /tmp/cue3_samples.csv
+* python3 code/evaluation/main.py score / check / custom --agent / usage; python3 code/evaluation/batch_check.py; python3 code/evaluation/perturbation_check.py; unittest (evaluation 28, hark 4); python3 code/test_intent.py
+* diffed the 45c5428 and 6435d97 outputs (0 status changes, 43 steps_json changes)
+* edited code/evaluation/evaluation_report.md, code/evaluation/README.md, code/evaluation/usage_report.md; appended log.txt, DECISIONS.md, TOOLS.md
+Context:
+tool=Cue task sub-agent (Cue personal-assistant app, delegated by the Cue coordinator agent)
+model=not exposed by the runtime (no authoritative identifier available in this session; the runtime shows no model name, so none is guessed)
+branch=task/eval-refresh
+repo_root=/workspace/wt-cue3
+worktree=/workspace/wt-cue3
+parent_agent=Cue coordinator

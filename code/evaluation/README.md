@@ -8,6 +8,7 @@ Standard library only (Python 3.8+), deterministic, no network. Task 5 of the te
 | `scorer.py` | metrics (case / row / step / field / sequence), row and file validators |
 | `custom_cases.py` | 8 metamorphic evaluation cases; builds `custom/custom_requests.csv` + `custom/custom_gold.csv` |
 | `usage.py` | `record_usage(...)` for every model call; builds `usage_report.md` |
+| `perturbation_check.py` | generality gate (Hark): shuffles / renames / upper-cases the 518 requests, reruns `code/main.py`, requires identical statuses and steps |
 | `batch_check.py` | diagnostic: plans custom_04/06/07 in 3 batch compositions to show the engine's dependence on which requests are planned together |
 | `analyze_samples.py` | prints the pattern statistics behind `sample_patterns.md` |
 | `test_scorer.py` | 28 unit tests |
@@ -32,9 +33,16 @@ python3 code/evaluation/main.py custom --agent "python3 code/main.py --requests 
 python3 code/evaluation/main.py score --pred <sample_predictions.csv> --update-report code/evaluation/evaluation_report.md
 python3 code/evaluation/main.py usage
 
-# 5. tests
+# 5. generality gate: rename / shuffle / upper-case the 518 requests, rerun, require identical answers
+python3 code/evaluation/perturbation_check.py
+# 6. tests
 python3 -m unittest discover -s code/evaluation -p "test_*.py"
 ```
+### Gates before submitting
+All must pass: `python3 code/main.py --selftest`; `python3 code/main.py` followed by `check --pred output.csv`
+(command 2); `score` on the sample predictions (command 1, status 32/32); `custom --agent` (command 3,
+status 8/8); **`python3 code/evaluation/perturbation_check.py` (command 5, must print `PERTURBATION PASS`)**;
+the unit tests (command 6). `perturbation_check.py` exits non-zero on any status or row change.
 
 `score` exits 1 with `--min-status-acc X` if status accuracy is below X, and `check` exits 1
 when the submission is not valid, so both can gate a CI step or a pre-submit script.
