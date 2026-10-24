@@ -51,8 +51,9 @@ security audit record, and every downstream copy), not just the broken ones.
    file captured_at + 7 min) naming resource, email and user_id. It belongs to the case whose
    `[requested_at, audit_at]` contains that LINK, NOT to every case of that user (sample case_07 ignores
    object_19 of Feb; case_17 ignores tombstone_17 of March). These are 12 test cases: 33,34,35,39,45,46,50,52,
-   53,55,61,63 (users 18,11,13,14,03,17,20,18,22,16,07,09). States are in `code/hark/multimodal_hints.py`
-   (provisional, read by hand from OCR; replace with the teammate's extractor).
+   53,55,61,63 (users 18,11,13,14,03,17,20,18,22,16,07,09). States come from Muse's extraction (`code/extracted/*.json` via `code/multimodal.py`, adapted by
+   `code/hark/multimodal_facts.py`) (no hand-written fallback). Of several artifacts for one resource (audit_record_003: evidence_55 PDF, evidence_37 PNG) the
+   latest citable one (captured_at <= audit_at) is cited.
 5. Hand-made family (users <= ~22, cases 01-10 and the multimodal test cases): account id is
    `account_0NN` for `user_NN` (10/10 samples, incl. case_04 where no activity mentions it).
 6. Not visible anywhere: case_18 `audit_record_6645`, case_20 `audit_record_5569` (grep finds them in no
@@ -113,8 +114,12 @@ All 32 samples are deletions (incl. French, Spanish, Japanese texts).
 ## 7. Open problems
 * 38 test cases share a reported_at slot with another case and have no fingerprint signal (only account
   + audit record): account chosen by a deterministic guess (~50%).
-* Multimodal states are hand-read (multimodal_hints.py); legal_retention_register PDF (users 08,12,17,21,24,29)
-  has no matching resource ids and is unused.
+* Retention: a citable retention entry naming a case resource (evidence_55/37: audit_record_003 for user_03,
+  retain until 2027-08-25 04:03 UTC) forces RETAIN -> VERIFY_RECORD_PRESENT while retain-until >= audit_at, and
+  DELETE once it has passed (rule_12). The legal retention register (evidence_27: users 08,12,17,21,24,29, finance
+  orders retained until May 2033) names no system resource id that any case resource maps to, and the gold
+  samples of those six users have no step for it, so it adds no step; the engine records it in the plan debug
+  only.
 * Linking uses record-level time <= audit_at (needed for case_23 audit_record_4128 which only appears in a
   file exported after audit), and ownership exclusion uses all evidence regardless of time.
 * RESTORE_BACKUP activity_3387 (backup_9287 repopulated search_4882 on 08-22) is not modelled beyond the
