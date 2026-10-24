@@ -202,3 +202,9 @@ parent_agent=Cue coordinator
 User Prompt: "didn't miss rename" (Anu: do the pending resource_id renames from the PR #2 review)
 Agent Response Summary: Set canonical resource_id in code/extracted/*.json for evidence_18 (export_1842), evidence_46 (object_19), evidence_42 (tombstone_17), verified against LINK_RESOURCE_IDENTITY activities 4009/4007/4011; old labels kept as display_id; README note added. Pipeline output unchanged.
 Actions: edited code/extracted/documents.json, images.json, README.md; branch hark/canonical-resource-ids; PR into main.
+
+## [Sat 2026-10-24 4:58 PM EAT (UTC+03:00)] Hark — adapter batch fix (Cue finding F6)
+
+User Prompt: "yeah go ahead and show me the pr here" (Anu: fix the adapter bug Cue found)
+Agent Response Summary: code/evidence.py now prepares the Hark engine on the current run's requests first and skips any dataset request with the same email + reported_at, so a base sample can no longer claim a run request's account activity. Real 518 output byte-identical; samples still 30/32 exact; custom cases 5/8 -> 7/8 exact (custom_06 is the known missing audit_record_6645).
+Actions: edited code/evidence.py; branch hark/adapter-batch-fix; PR into main (not merged).
