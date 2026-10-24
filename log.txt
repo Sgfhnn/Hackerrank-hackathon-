@@ -32,3 +32,23 @@ branch=hark/evidence-engine
 repo_root=Sgfhnn/Hackerrank-hackathon-
 worktree=main
 parent_agent=Hark (team orchestrator)
+## [Sat 2026-10-24 4:45 PM EAT (UTC+03:00)] Wire Hark engine into OpenCode core (code/evidence.py)
+
+User Prompt (verbatim, secrets redacted):
+Wire Hark's evidence engine into OpenCode's core ... Write code/evidence.py with audit_case(ctx, request, subject) that calls the Hark engine for request.case_id (build/cache the engine once, e.g. in ctx.extras) and returns (status, steps as dicts matching the output schema). If the engine says NOT_APPLICABLE return that with []. ... Test locally ... Commit code/evidence.py to branch hark/evidence-engine (PR #1) ... (abridged; no secrets)
+
+Agent Response Summary:
+Added code/evidence.py, the core plug-in adapter: builds the Hark Engine once per Context (cached in ctx.extras["hark_engine"]), points code/hark/ingest at ctx.dataset_dir, prepares the global activity->case assignment on sample + test requests (+ ctx.requests), and maps Request -> CSV-row dict -> Engine.plan(). Tested on a tree of main + opencode/core main.py + code/hark + evidence.py: `python3 code/main.py` gives 518 rows (152 COMPLETE / 356 INCOMPLETE / 10 NOT_APPLICABLE), 0 validation problems, steps_json identical to code/hark/run.py output for all 518 cases (row order differs only because core sorts case_id lexicographically). With Muse's code/intent.py classifier installed, statuses are unchanged. Sample run scored with Cue's scorer: status 32/32, exact 30/32, step F1 0.995.
+
+Actions:
+* Created code/evidence.py (stdlib only, no model calls)
+* Ran python3 code/main.py full + --requests sample + --check + --selftest in a local assembled tree
+* Updated PR #1 body; posted note to team Slack thread
+
+Context:
+tool=Hark
+model=not exposed to the Hark subagent runtime (lead: please correct before submission)
+branch=hark/evidence-engine
+repo_root=Sgfhnn/Hackerrank-hackathon-
+worktree=main
+parent_agent=Hark (team orchestrator)
