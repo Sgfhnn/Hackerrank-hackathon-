@@ -77,9 +77,9 @@ OPERATION_STATE: Dict[Tuple[str, str], str] = {
 }
 
 # One switch controls row ordering.  AGENTS.md says "sort rows by case_id";
-# we follow the literal lexicographic interpretation and keep the alternative
-# natural-sort implementation in one place so it can be flipped safely.
-CASE_SORT_MODE = "lexicographic"
+# Anu chose natural (numeric-aware) order, matching deletion_requests.csv; the
+# lexicographic alternative stays here so it can be flipped safely.
+CASE_SORT_MODE = "natural"  # team decision 2026-10-24 (Anu): match input order case_33..case_550
 _CASE_NUMBER_RE = re.compile(r"(\d+)")
 
 
