@@ -21,7 +21,7 @@ It processes all 518 cases in the dataset and writes `output.csv` (`case_id, del
 - **Identity resolution** (`code/main.py`): follows email changes, phone changes and hashed emails over time, so data stored under an old identifier is still found.
 - **Intent classifier** (`code/intent.py`): separates real deletion requests from look-alikes such as export or correction requests.
 - **Evidence engine** (`code/hark/`): ties activity logs, audit events and evidence files to each case, then runs a state machine per system to work out what still exists, what is still syncing, and what a backup restore could bring back.
-- **Multimodal facts** (`code/multimodal.py`, `code/extracted/`): facts read from PDF reports and screenshots, produced by `code/extract.py`.
+- **Multimodal facts** (`code/multimodal.py`, `code/extracted/`): facts read from PDF reports and screenshots, produced by `code/extracted/extract.py`.
 - **Validation** (`code/main.py`, `code/evaluation/`): every step is checked against the allowed phase, operation and state table, evidence must predate the audit, and a perturbation check makes sure answers don't depend on row order or ids.
 
 ## Lessons
