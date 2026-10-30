@@ -14,7 +14,6 @@ It processes all 518 cases in the dataset and writes `output.csv` (`case_id, del
 
 - **Output accuracy: 28.8 / 30** against HackerRank's hidden test cases.
 - Matches 30 of the 32 public sample answers exactly.
-- Final rank: 1,449 of 4,094 participants. The code score pulled the rank down (see Lessons).
 
 ## How it works
 
@@ -28,7 +27,7 @@ It processes all 518 cases in the dataset and writes `output.csv` (`case_id, del
 
 I'm keeping this section honest, since that's the useful part.
 
-- **No runtime LLM.** The pipeline is fully deterministic. It's accurate and reproducible, but the judges expected an LLM agent, so the code score was low. Next time: the model reads and interprets, and the code validates its output.
+- **No runtime LLM.** The pipeline is fully deterministic. It is accurate and reproducible, but the judges expected an LLM agent, so the code score was low. Next time: the model reads and interprets, and the code validates its output.
 - **Sample-fit heuristics.** `code/hark/windows.py` has a timing fallback tuned on the 32 public samples. It improved sample accuracy, but it isn't guaranteed to generalize, and it's labeled as such in the file.
 - **Precomputed extraction.** The multimodal facts are checked in as JSON instead of being extracted at runtime.
 - **Read the rubric first.** Confirm what the judges reward before locking the architecture.
