@@ -1,3 +1,8 @@
+# NOTE (post-hackathon): the timing windows and the "% 30" residue bands in this file were
+# tuned on the 32 public sample cases. They helped sample accuracy (30/32 vs 20/32 without them)
+# but are dataset-fit, not a general rule, and should not be expected to hold on new data.
+# A production version would replace this fallback with a model-read match plus validation.
+
 from datetime import timedelta
 WINDOWS = [  # (phrase, lo_min, hi_min) relative to reported_at
     ("submitted primary profile", -80, -40),
